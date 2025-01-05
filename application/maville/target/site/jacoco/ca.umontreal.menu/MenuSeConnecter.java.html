@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuSeConnecter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuSeConnecter.java</span></div><h1>MenuSeConnecter.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.User;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Scanner;
+
+public class MenuSeConnecter extends Menu {
+
+    public MenuSeConnecter() {
+<span class="fc" id="L16">        super(&quot;seConnecter&quot;);</span>
+<span class="fc" id="L17">    }</span>
+
+    /**
+     * Affiche l'interface de connexion pour l'utilisateur, permettant de vérifier l'adresse courriel
+     * et le mot de passe. L'utilisateur a un nombre limité de tentatives pour chaque étape.
+     * @param scanner
+     * @param user
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L26">        System.out.println(&quot;\nConnexion\n&quot;);</span>
+
+<span class="nc" id="L28">        boolean isUserFound = false;</span>
+<span class="nc" id="L29">        boolean isPasswordCorrect = false;</span>
+<span class="nc" id="L30">        int emailAttempts = 3;</span>
+<span class="nc" id="L31">        int passwordAttempts = 3;</span>
+
+        try {
+<span class="nc bnc" id="L34" title="All 4 branches missed.">            while (!isUserFound &amp;&amp; emailAttempts &gt; 0) {</span>
+<span class="nc" id="L35">                System.out.println(&quot;\nEntrez votre adresse courriel:\n&quot;);</span>
+<span class="nc" id="L36">                String courriel = scanner.nextLine();</span>
+<span class="nc" id="L37">                isUserFound = checkCredentialsApiCall(courriel, user);</span>
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">                if (!isUserFound) {</span>
+<span class="nc" id="L40">                    emailAttempts--;</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                    if (emailAttempts &gt; 0) {</span>
+<span class="nc" id="L42">                        System.out.println(&quot;\nCompte inexistant. Veuillez vérifier votre courriel. Il vous reste &quot; + emailAttempts + &quot; tentatives.\n&quot;);</span>
+                    }
+                }
+<span class="nc" id="L45">            }</span>
+
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (!isUserFound) {</span>
+<span class="nc" id="L48">                System.out.println(&quot;\nNombre maximum de tentatives atteint.\n&quot;);</span>
+<span class="nc" id="L49">                return;</span>
+            }
+
+<span class="nc bnc" id="L52" title="All 4 branches missed.">            while (!isPasswordCorrect &amp;&amp; passwordAttempts &gt; 0) {</span>
+<span class="nc" id="L53">                System.out.println(&quot;\nEntrez votre mot de passe:\n&quot;);</span>
+<span class="nc" id="L54">                String password = scanner.nextLine();</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                if (user.getPassword().equals(password)) {</span>
+<span class="nc" id="L57">                    isPasswordCorrect = true;</span>
+<span class="nc" id="L58">                    System.out.println(&quot;\nConnexion réussie!\n&quot;);</span>
+                } else {
+<span class="nc" id="L60">                    passwordAttempts--;</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                    if (passwordAttempts &gt; 0) {</span>
+<span class="nc" id="L62">                        System.out.println(&quot;\nMot de passe incorrect. Il vous reste &quot; + passwordAttempts + &quot; tentatives.\n&quot;);</span>
+                    }
+                }
+<span class="nc" id="L65">            }</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (!isPasswordCorrect) {</span>
+<span class="nc" id="L68">                System.out.println(&quot;\nNombre maximum de tentatives atteint.\n&quot;);</span>
+<span class="nc" id="L69">                user.setNom(&quot;&quot;);</span>
+<span class="nc" id="L70">                return;</span>
+            }
+
+<span class="nc" id="L73">        } catch (Exception e) {</span>
+<span class="nc" id="L74">            System.out.println(&quot;\nErreur lors de la connexion. Veuillez réessayer plus tard.\n&quot;);</span>
+<span class="nc" id="L75">            e.printStackTrace();</span>
+<span class="nc" id="L76">        }</span>
+<span class="nc" id="L77">    }</span>
+
+    /**
+     * Vérifie si l'adresse courriel correspond à un utilisateur existant via des appels à deux API :
+     * une pour les résidents et une pour les intervenants.
+     * @param courriel
+     * @param user
+     * @return boolean
+     */
+    public boolean checkCredentialsApiCall(String courriel, User user) {
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        return checkUserType(courriel, user, &quot;http://localhost:7070/getResidents&quot;, &quot;resident&quot;) ||</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">               checkUserType(courriel, user, &quot;http://localhost:7070/getIntervenants&quot;, &quot;intervenant&quot;);</span>
+    }
+
+    /**
+     * Vérifie si une adresse courriel correspond à un utilisateur d'un type spécifique via un API.
+     * @param courriel
+     * @param user
+     * @param url
+     * @param userType
+     * @return boolean
+     */
+    private boolean checkUserType(String courriel, User user, String url, String userType) {
+<span class="nc" id="L100">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L101">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L102">                .uri(URI.create(url))</span>
+<span class="nc" id="L103">                .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L104">                .GET()</span>
+<span class="nc" id="L105">                .build();</span>
+
+        try {
+<span class="nc" id="L108">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L109">            JSONArray records = new JSONArray(response.body());</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            for (int i = 0; i &lt; records.length(); i++) {</span>
+<span class="nc" id="L112">                JSONObject record = records.getJSONObject(i);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (record.optString(&quot;courriel&quot;).equals(courriel)) {</span>
+<span class="nc" id="L114">                    populateUserDetails(user, record, userType);</span>
+<span class="nc" id="L115">                    return true;</span>
+                }
+            }
+<span class="nc" id="L118">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L119">            e.printStackTrace();</span>
+<span class="nc" id="L120">        }</span>
+<span class="nc" id="L121">        return false;</span>
+    }
+
+    /**
+     * Remplit les détails de l'utilisateur à partir d'un enregistrement
+     * @param user
+     * @param record
+     * @param userType
+     */
+    private void populateUserDetails(User user, JSONObject record, String userType) {
+<span class="nc" id="L131">        user.setNom(record.optString(&quot;nom&quot;));</span>
+<span class="nc" id="L132">        user.setCourriel(record.optString(&quot;courriel&quot;));</span>
+<span class="nc" id="L133">        user.setPassword(record.optString(&quot;password&quot;));</span>
+<span class="nc" id="L134">        user.setUserType(userType);</span>
+
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (userType.equals(&quot;resident&quot;)) {</span>
+<span class="nc" id="L137">            user.setDateNaissance(record.optString(&quot;dateNaissance&quot;));</span>
+<span class="nc" id="L138">            user.setTelephone(record.optString(&quot;telephone&quot;));</span>
+<span class="nc" id="L139">            user.setAdresse(record.optString(&quot;adresse&quot;));</span>
+<span class="nc" id="L140">            user.setArrondissement(record.optString(&quot;arrondissement&quot;));</span>
+<span class="nc" id="L141">            user.setHoraire(record.optString(&quot;horaire&quot;, &quot;&quot;)); // Handle new horaire field</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        } else if (userType.equals(&quot;intervenant&quot;)) {</span>
+<span class="nc" id="L143">            user.setTypeIntervenant(record.optString(&quot;typeIntervenant&quot;));</span>
+<span class="nc" id="L144">            user.setIdVille(record.optString(&quot;idVille&quot;));</span>
+        }
+<span class="nc" id="L146">    }</span>
+
+    /**
+     * Met à jour le menu en fonction de l'état de connexion de l'utilisateur.
+     * @param choix
+     * @param user
+     * @param scanner
+     * @return un menu
+     */
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L156" title="All 4 branches missed.">        if (!(user.getNom().isEmpty() || user.getNom().equals(&quot;&quot;))) {</span>
+<span class="nc" id="L157">            return new MenuPrincipal();</span>
+        }
+<span class="nc" id="L159">        return new MenuConnexion();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

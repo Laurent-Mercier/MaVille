@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuCreerUnCompte.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuCreerUnCompte.java</span></div><h1>MenuCreerUnCompte.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Scanner;
+import java.util.StringJoiner;
+import java.util.regex.Pattern;
+
+public class MenuCreerUnCompte extends Menu {
+
+    public MenuCreerUnCompte() {
+<span class="nc" id="L24">        super(&quot;creerUnCompte&quot;);</span>
+<span class="nc" id="L25">    }</span>
+
+    /**
+     * Affiche le menu
+     * @param scanner le scanner pour la saisie
+     * @param user utilisateur
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L33">        System.out.println(&quot;\nCréer un compte\n\n&quot;);</span>
+
+        // Select user type
+<span class="nc" id="L36">        String typeUsager = selectUserType(scanner);</span>
+
+        // Collect user details
+<span class="nc" id="L39">        String nomComplet = collectFullName(scanner);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        String dateNaissance = typeUsager.equals(&quot;resident&quot;) ? collectDateOfBirth(scanner) : &quot;&quot;;</span>
+<span class="nc" id="L41">        String courriel = collectEmail(scanner);</span>
+<span class="nc" id="L42">        String password = collectPassword(scanner);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        String telephone = typeUsager.equals(&quot;resident&quot;) ? collectPhone(scanner) : &quot;&quot;;</span>
+<span class="nc" id="L44">        String adresse = &quot;&quot;;</span>
+<span class="nc" id="L45">        String arrondissement = &quot;&quot;;</span>
+<span class="nc" id="L46">        String horaire = &quot;&quot;;</span>
+
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (typeUsager.equals(&quot;resident&quot;)) {</span>
+<span class="nc" id="L49">            String[] addressDetails = collectAddress(scanner);</span>
+<span class="nc" id="L50">            adresse = addressDetails[0];</span>
+<span class="nc" id="L51">            arrondissement = addressDetails[1];</span>
+        }
+
+<span class="nc" id="L54">        String typeInter = &quot;&quot;;</span>
+<span class="nc" id="L55">        String idVille = &quot;&quot;;</span>
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (typeUsager.equals(&quot;intervenant&quot;)) {</span>
+<span class="nc" id="L58">            typeInter = selectIntervenantType(scanner);</span>
+<span class="nc" id="L59">            idVille = collectCityId(scanner);</span>
+        }
+
+        // Register user
+<span class="nc" id="L63">        createAccountApiCall(typeUsager, nomComplet, dateNaissance, courriel, password, telephone, adresse,</span>
+                arrondissement, horaire, typeInter, idVille);
+
+<span class="nc" id="L66">        System.out.println(&quot;\nVotre compte a été créé avec succès! Vous pouvez maintenant vous connecter à MaVille.\n&quot;);</span>
+<span class="nc" id="L67">    }</span>
+
+    /**
+     * Permet à l'utilisateur de sélectionner son type d'inscription : résident ou intervenant.
+     *
+     * @param scanner le scanner pour capturer la saisie
+     * @return l'utilisateur
+     */
+    private String selectUserType(Scanner scanner) {
+<span class="nc" id="L76">        System.out.println(&quot;\nVous inscrivez-vous en tant que résident (1) ou en tant qu'intervenant (2)?\n&quot;);</span>
+        while (true) {
+            try {
+<span class="nc" id="L79">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L80" title="All 4 branches missed.">                if (choix == 1 || choix == 2) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                    return choix == 1 ? &quot;resident&quot; : &quot;intervenant&quot;;</span>
+                } else {
+<span class="nc" id="L83">                    System.out.println(&quot;\nOption invalide. Veuillez entrer 1 pour résident ou 2 pour intervenant.\n&quot;);</span>
+                }
+<span class="nc" id="L85">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L86">                System.out.println(&quot;\nVeuillez entrer un numéro valide.\n&quot;);</span>
+<span class="nc" id="L87">            }</span>
+        }
+    }
+
+    /**
+     * Collecte et valide le nom de l'utilisateur
+     * @param scanner le scanner pour capturer la saisie
+     * @return nom de l'utilisateur
+     */
+    private String collectFullName(Scanner scanner) {
+<span class="nc" id="L97">        System.out.println(&quot;\nEntrez votre nom complet:\n&quot;);</span>
+        while (true) {
+<span class="nc" id="L99">            String nomComplet = scanner.nextLine();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (nomComplet.matches(&quot;[A-Za-zÀ-ÿ'\\- ]{2,50}&quot;)) {</span>
+<span class="nc" id="L101">                return nomComplet;</span>
+            } else {
+<span class="nc" id="L103">                System.out.println(&quot;\nFormat du nom incorrect. Veuillez réessayer.\n&quot;);</span>
+            }
+<span class="nc" id="L105">        }</span>
+    }
+
+    /**
+     * Collecte et valide la date de naissance de l'utilisateur
+     *  @param scanner le scanner pour capturer la saisie
+     * @return la date formattée
+     */
+    private String collectDateOfBirth(Scanner scanner) {
+<span class="nc" id="L114">        System.out.println(&quot;\nEntrez votre date de naissance (jj/mm/aaaa):\n&quot;);</span>
+<span class="nc" id="L115">        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;dd/MM/uuuu&quot;).withResolverStyle(ResolverStyle.STRICT);</span>
+<span class="nc" id="L116">        LocalDate minimumDateOfBirth = LocalDate.now().minusYears(16);</span>
+
+        while (true) {
+            try {
+<span class="nc" id="L120">                LocalDate date = LocalDate.parse(scanner.nextLine(), formatter);</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                if (date.isAfter(minimumDateOfBirth)) {</span>
+<span class="nc" id="L122">                    System.out.println(&quot;\nVous devez avoir au moins 16 ans pour créer un compte.\n&quot;);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                } else if (date.getYear() &lt;= 1900) {</span>
+<span class="nc" id="L124">                    System.out.println(&quot;\nAnnée invalide. Veuillez entrer une année à partir de 1901.\n&quot;);</span>
+                } else {
+<span class="nc" id="L126">                    return date.format(formatter);</span>
+                }
+<span class="nc" id="L128">            } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L129">                System.out.println(&quot;\nDate invalide. Veuillez réessayer.\n&quot;);</span>
+<span class="nc" id="L130">            }</span>
+        }
+    }
+    /**
+     * Collecte et valide l'adresse courriel de l'utilisateur.
+     * @param scanner le scanner pour capturer la saisie
+     * @return  l'adresse courriel
+     */
+    private String collectEmail(Scanner scanner) {
+<span class="nc" id="L139">        System.out.println(&quot;\nEntrez votre adresse courriel:\n&quot;);</span>
+        while (true) {
+<span class="nc" id="L141">            String courriel = scanner.nextLine();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (Pattern.matches(&quot;^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$&quot;, courriel)) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if (verifCourrielApiCall(courriel)) {</span>
+<span class="nc" id="L144">                    return courriel;</span>
+                } else {
+<span class="nc" id="L146">                    System.out.println(&quot;\nLe courriel est déjà utilisé. Veuillez en choisir un autre.\n&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L149">                System.out.println(&quot;\nFormat d'adresse courriel invalide. Veuillez réessayer.\n&quot;);</span>
+            }
+<span class="nc" id="L151">        }</span>
+    }
+
+    /**
+     * Collecte et valide le mot de passe de l'utilisateur
+     * @param scanner le scanner pour capturer la saisie
+     * @return le mot de passe
+     */
+    private String collectPassword(Scanner scanner) {
+<span class="nc" id="L160">        System.out.println(&quot;\nEntrez votre mot de passe (au moins 8 caractères, dont une majuscule et un chiffre):\n&quot;);</span>
+        while (true) {
+<span class="nc" id="L162">            String password = scanner.nextLine();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (isValidPassword(password)) {</span>
+<span class="nc" id="L164">                return password;</span>
+            } else {
+<span class="nc" id="L166">                System.out.println(&quot;\nLe mot de passe ne respecte pas les critères. Veuillez réessayer.\n&quot;);</span>
+            }
+<span class="nc" id="L168">        }</span>
+    }
+
+    /**
+     * Collecte et valide le numero de l'utilisateur
+     * @param scanner le scanner pour capturer la saisie
+     * @return le numero de l'utilisateur
+     */
+    private String collectPhone(Scanner scanner) {
+<span class="nc" id="L177">        System.out.println(&quot;\nVoulez-vous ajouter votre numéro de téléphone ? Entrez 1 pour oui, et 2 pour non:\n&quot;);</span>
+        while (true) {
+            try {
+<span class="nc" id="L180">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                if (choix == 1) {</span>
+<span class="nc" id="L182">                    System.out.println(&quot;\nEntrez votre numéro de téléphone (xxx-xxx-xxxx):\n&quot;);</span>
+                    while (true) {
+<span class="nc" id="L184">                        String telephone = scanner.nextLine();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                        if (Pattern.matches(&quot;\\d{3}-\\d{3}-\\d{4}&quot;, telephone)) {</span>
+<span class="nc" id="L186">                            return telephone;</span>
+                        } else {
+<span class="nc" id="L188">                            System.out.println(&quot;\nFormat de téléphone invalide. Réessayez.\n&quot;);</span>
+                        }
+<span class="nc" id="L190">                    }</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                } else if (choix == 2) {</span>
+<span class="nc" id="L192">                    return &quot;&quot;;</span>
+                } else {
+<span class="nc" id="L194">                    System.out.println(&quot;\nOption invalide. Entrez 1 pour oui ou 2 pour non.\n&quot;);</span>
+                }
+<span class="nc" id="L196">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L197">                System.out.println(&quot;\nVeuillez entrer un numéro valide.\n&quot;);</span>
+<span class="nc" id="L198">            }</span>
+        }
+    }
+
+    /**
+     * Collecte et valide l'adresse
+     * @param scanner le scanner pour capturer la saisie
+     * @return l'adresse
+     */
+    private String[] collectAddress(Scanner scanner) {
+<span class="nc" id="L208">        System.out.println(&quot;\nEntrez votre adresse résidentielle à Montréal (format: numéro rue, code postal):\n&quot;);</span>
+        while (true) {
+<span class="nc" id="L210">            String adresse = scanner.nextLine();</span>
+<span class="nc" id="L211">            String[] parts = adresse.split(&quot;,&quot;);</span>
+<span class="nc bnc" id="L212" title="All 4 branches missed.">            if (parts.length &gt; 1 &amp;&amp; parts[1].trim().length() &gt;= 6) {</span>
+<span class="nc" id="L213">                String codePostal = parts[1].trim().substring(0, 3).toUpperCase();</span>
+<span class="nc" id="L214">                String arrondissement = verifCodePostalApiCall(codePostal);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                if (!arrondissement.isEmpty()) {</span>
+<span class="nc" id="L216">                    return new String[]{adresse, arrondissement};</span>
+                } else {
+<span class="nc" id="L218">                    System.out.println(&quot;\nLe code postal n'est pas un code postal de Montréal. Réessayez.\n&quot;);</span>
+                }
+<span class="nc" id="L220">            } else {</span>
+<span class="nc" id="L221">                System.out.println(&quot;\nFormat d'adresse invalide. Réessayez.\n&quot;);</span>
+            }
+<span class="nc" id="L223">        }</span>
+    }
+
+    /**
+     * Collecte et valide le type de l'intervenant
+     * @param scanner pour la saisie
+     * @return le type de l'intervenant
+     */
+    private String selectIntervenantType(Scanner scanner) {
+<span class="nc" id="L232">        System.out.println(&quot;\nQuel type d'intervenant êtes-vous?\n1. Entreprise publique\n2. Entrepreneur privé\n3. Particulier\n&quot;);</span>
+        while (true) {
+            try {
+<span class="nc" id="L235">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L236" title="All 4 branches missed.">                switch (choix) {</span>
+                    case 1:
+<span class="nc" id="L238">                        return &quot;entreprisePublique&quot;;</span>
+                    case 2:
+<span class="nc" id="L240">                        return &quot;entrepreneurPrive&quot;;</span>
+                    case 3:
+<span class="nc" id="L242">                        return &quot;particulier&quot;;</span>
+                    default:
+<span class="nc" id="L244">                        System.out.println(&quot;\nOption invalide. Entrez un nombre entre 1 et 3.\n&quot;);</span>
+                }
+<span class="nc" id="L246">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L247">                System.out.println(&quot;\nVeuillez entrer un numéro valide.\n&quot;);</span>
+<span class="nc" id="L248">            }</span>
+        }
+    }
+
+    /**
+     * Collecte le id de la ville de l'intervenantt
+     * @param scanner poyr la saisie
+     * @return le id de la ville
+     */
+    private String collectCityId(Scanner scanner) {
+<span class="nc" id="L258">        System.out.println(&quot;\nEntrez votre identifiant de la ville (8 chiffres):\n&quot;);</span>
+        while (true) {
+<span class="nc" id="L260">            String idVille = scanner.nextLine();</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">            if (Pattern.matches(&quot;\\d{8}&quot;, idVille)) {</span>
+<span class="nc" id="L262">                return idVille;</span>
+            } else {
+<span class="nc" id="L264">                System.out.println(&quot;\nIdentifiant invalide. Veuillez entrer un identifiant à 8 chiffres.\n&quot;);</span>
+            }
+<span class="nc" id="L266">        }</span>
+    }
+
+    /**
+     * Vérifie si un mot de passe est valide selon les critères définis.
+     * @param password mot de passe a verifier
+     * @return validité du mot de passe
+     */
+    private boolean isValidPassword(String password) {
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        return password.length() &gt;= 8 &amp;&amp;</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">                Pattern.compile(&quot;[A-Z]&quot;).matcher(password).find() &amp;&amp;</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                Pattern.compile(&quot;[0-9]&quot;).matcher(password).find();</span>
+    }
+
+    private boolean verifCourrielApiCall(String courriel) {
+<span class="nc" id="L281">        String url = &quot;http://localhost:7070/isCourrielTaken&quot;;</span>
+<span class="nc" id="L282">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L283">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L284">                .uri(URI.create(url))</span>
+<span class="nc" id="L285">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L286">                .POST(HttpRequest.BodyPublishers.ofString(&quot;courriel=&quot; + URLEncoder.encode(courriel, StandardCharsets.UTF_8)))</span>
+<span class="nc" id="L287">                .build();</span>
+        try {
+<span class="nc" id="L289">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">            return response.statusCode() == 200;</span>
+<span class="nc" id="L291">        } catch (Exception e) {</span>
+<span class="nc" id="L292">            return false;</span>
+        }
+    }
+
+    /**
+     * Vérifie si un code postal correspond à un arrondissement avec une API.
+     * @param codePostal code postal a valider.
+     * @return arrondissement
+     */
+    private String verifCodePostalApiCall(String codePostal) {
+<span class="nc" id="L302">        String url = &quot;http://localhost:7070/verifArrondissement&quot;;</span>
+<span class="nc" id="L303">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L304">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L305">                .uri(URI.create(url))</span>
+<span class="nc" id="L306">                .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L307">                .GET()</span>
+<span class="nc" id="L308">                .build();</span>
+        try {
+<span class="nc" id="L310">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L311">            JSONArray arr = new JSONArray(response.body());</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            for (int i = 0; i &lt; arr.length(); i++) {</span>
+<span class="nc" id="L313">                JSONObject jsonObject = arr.getJSONObject(i);</span>
+<span class="nc bnc" id="L314" title="All 4 branches missed.">                if (jsonObject.has(&quot;codePostal&quot;) &amp;&amp; jsonObject.getString(&quot;codePostal&quot;).equals(codePostal)) {</span>
+<span class="nc" id="L315">                    return jsonObject.getString(&quot;arrondissement&quot;);</span>
+                }
+            }
+<span class="nc" id="L318">        } catch (Exception e) {</span>
+<span class="nc" id="L319">            throw new RuntimeException(e);</span>
+<span class="nc" id="L320">        }</span>
+<span class="nc" id="L321">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * Http request qui créer un compte
+     * @param typeUsager le type de l'usager
+     * @param nomComplet le nom de l'usager
+     * @param dateNaissance date de naissance
+     * @param courriel courriel
+     * @param password mot de passe
+     * @param telephone telephone
+     * @param adresse adresse
+     * @param arrondissement arondissement
+     * @param horaire horaire
+     * @param typeInter type de l'intervenant
+     * @param idVille id de ville de l'interveant
+     */
+    private void createAccountApiCall(String typeUsager, String nomComplet, String dateNaissance,
+                                       String courriel, String password, String telephone,
+                                       String adresse, String arrondissement, String horaire, String typeInter, String idVille) {
+<span class="nc" id="L341">        String url = &quot;http://localhost:7070/creer-compte&quot;;</span>
+<span class="nc" id="L342">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L343">        StringJoiner formParams = new StringJoiner(&quot;&amp;&quot;);</span>
+<span class="nc" id="L344">        formParams.add(&quot;typeUsager=&quot; + URLEncoder.encode(typeUsager, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L345">        formParams.add(&quot;nomComplet=&quot; + URLEncoder.encode(nomComplet, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L346">        formParams.add(&quot;dateNaissance=&quot; + URLEncoder.encode(dateNaissance, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L347">        formParams.add(&quot;courriel=&quot; + URLEncoder.encode(courriel, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L348">        formParams.add(&quot;password=&quot; + URLEncoder.encode(password, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L349">        formParams.add(&quot;telephone=&quot; + URLEncoder.encode(telephone, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L350">        formParams.add(&quot;adresse=&quot; + URLEncoder.encode(adresse, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L351">        formParams.add(&quot;arrondissement=&quot; + URLEncoder.encode(arrondissement, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L352">        formParams.add(&quot;horaire=&quot; + URLEncoder.encode(horaire, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L353">        formParams.add(&quot;typeInter=&quot; + URLEncoder.encode(typeInter, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L354">        formParams.add(&quot;idVille=&quot; + URLEncoder.encode(idVille, StandardCharsets.UTF_8));</span>
+
+<span class="nc" id="L356">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L357">                .uri(URI.create(url))</span>
+<span class="nc" id="L358">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L359">                .POST(HttpRequest.BodyPublishers.ofString(formParams.toString()))</span>
+<span class="nc" id="L360">                .build();</span>
+
+        try {
+<span class="nc" id="L363">            client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L364">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L365">            throw new RuntimeException(e);</span>
+<span class="nc" id="L366">        }</span>
+<span class="nc" id="L367">    }</span>
+
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc" id="L370">        return new MenuConnexion();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

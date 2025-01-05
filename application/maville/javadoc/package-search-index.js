@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"ca.umontreal"},{"l":"ca.umontreal.menu"},{"l":"ca.umontreal.restApi"},{"l":"ca.umontreal.restApi.controllers"},{"l":"ca.umontreal.restApi.csvManager"},{"l":"ca.umontreal.user"}];updateSearchResults();

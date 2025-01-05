@@ -1,0 +1,41 @@
+#inspired from https://octopus.com/blog/githubactions-running-unit-tests
+name: Run Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main 
+env:
+  JAVA_DIST: 'temurin'
+  JAVA_VERSION: 17
+  
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+     
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+  
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DIST }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Build
+        run: mvn --batch-mode -DskipTests package
+        working-directory: application/maville
+
+      - name: Test
+        run: mvn --batch-mode test
+        working-directory: application/maville
+
+      

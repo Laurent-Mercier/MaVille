@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RestApi.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.restApi</a> &gt; <span class="el_source">RestApi.java</span></div><h1>RestApi.java</h1><pre class="source lang-java linenums">package ca.umontreal.restApi;
+import ca.umontreal.restApi.controllers.CityController;
+import ca.umontreal.restApi.controllers.RequestController;
+import ca.umontreal.restApi.controllers.UserController;
+import io.javalin.Javalin;
+
+
+public class RestApi {
+    private  Javalin app;
+
+
+<span class="fc" id="L12">    public RestApi() {</span>
+<span class="fc" id="L13">        this.app = Javalin.create();</span>
+<span class="fc" id="L14">    }</span>
+
+    private void setRoutes(){
+<span class="nc" id="L17">       new CityController(this.app);</span>
+<span class="nc" id="L18">       new UserController(this.app);</span>
+<span class="nc" id="L19">       new RequestController(this.app);</span>
+<span class="nc" id="L20">    }</span>
+    /**
+     * Arrête le serveur REST API si en cours d'exécution.
+     */
+    public void stop() {
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">        if (this.app != null) {</span>
+<span class="fc" id="L26">            this.app.stop();</span>
+<span class="fc" id="L27">            System.out.println(&quot;Rest API server stopped.&quot;);</span>
+        }
+<span class="fc" id="L29">    }</span>
+
+    /**
+     * Démarre le serveur REST API
+     */
+    public void start() {
+<span class="nc" id="L35">        this.app=this.app.start(7070);</span>
+<span class="nc" id="L36">        setRoutes();</span>
+<span class="nc" id="L37">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

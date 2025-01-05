@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="ca.umontreal.TestClass" time="0.158" tests="4" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="22"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/test-classes:/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/classes:/Users/jhosimagudelo/.m2/repository/io/javalin/javalin/6.3.0/javalin-6.3.0.jar:/Users/jhosimagudelo/.m2/repository/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-server/11.0.23/jetty-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-http/11.0.23/jetty-http-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-util/11.0.23/jetty-util-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-io/11.0.23/jetty-io-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/toolchain/jetty-jakarta-servlet-api/5.0.2/jetty-jakarta-servlet-api-5.0.2.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-server/11.0.23/websocket-jetty-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-servlet/11.0.23/jetty-servlet-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-security/11.0.23/jetty-security-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-webapp/11.0.23/jetty-webapp-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-xml/11.0.23/jetty-xml-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-api/11.0.23/websocket-jetty-api-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-common/11.0.23/websocket-jetty-common-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-core-common/11.0.23/websocket-core-common-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-servlet/11.0.23/websocket-servlet-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-core-server/11.0.23/websocket-core-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.25/kotlin-stdlib-jdk8-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.9.25/kotlin-stdlib-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.25/kotlin-stdlib-jdk7-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/slf4j/slf4j-simple/2.0.16/slf4j-simple-2.0.16.jar:/Users/jhosimagudelo/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/jhosimagudelo/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/jhosimagudelo/.m2/repository/org/mockito/mockito-core/5.12.0/mockito-core-5.12.0.jar:/Users/jhosimagudelo/.m2/repository/net/bytebuddy/byte-buddy/1.14.15/byte-buddy-1.14.15.jar:/Users/jhosimagudelo/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.15/byte-buddy-agent-1.14.15.jar:/Users/jhosimagudelo/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/Users/jhosimagudelo/.m2/repository/org/json/json/20210307/json-20210307.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="java.vm.specification.version" value="22"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="CA"/>
+    <property name="sun.boot.library.path" value="/Users/jhosimagudelo/Library/Java/JavaVirtualMachines/temurin-22.0.2/Contents/Home/lib"/>
+    <property name="sun.java.command" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/surefire/surefirebooter-20241222015045571_3.jar /Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/surefire 2024-12-22T01-50-45_541-jvmRun1 surefire-20241222015045571_1tmp surefire_0-20241222015045571_2tmp"/>
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/test-classes:/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/classes:/Users/jhosimagudelo/.m2/repository/io/javalin/javalin/6.3.0/javalin-6.3.0.jar:/Users/jhosimagudelo/.m2/repository/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-server/11.0.23/jetty-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-http/11.0.23/jetty-http-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-util/11.0.23/jetty-util-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-io/11.0.23/jetty-io-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/toolchain/jetty-jakarta-servlet-api/5.0.2/jetty-jakarta-servlet-api-5.0.2.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-server/11.0.23/websocket-jetty-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-servlet/11.0.23/jetty-servlet-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-security/11.0.23/jetty-security-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-webapp/11.0.23/jetty-webapp-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/jetty-xml/11.0.23/jetty-xml-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-api/11.0.23/websocket-jetty-api-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-common/11.0.23/websocket-jetty-common-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-core-common/11.0.23/websocket-core-common-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-servlet/11.0.23/websocket-servlet-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/eclipse/jetty/websocket/websocket-core-server/11.0.23/websocket-core-server-11.0.23.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.25/kotlin-stdlib-jdk8-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.9.25/kotlin-stdlib-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/Users/jhosimagudelo/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.25/kotlin-stdlib-jdk7-1.9.25.jar:/Users/jhosimagudelo/.m2/repository/org/slf4j/slf4j-simple/2.0.16/slf4j-simple-2.0.16.jar:/Users/jhosimagudelo/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/jhosimagudelo/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/jhosimagudelo/.m2/repository/org/mockito/mockito-core/5.12.0/mockito-core-5.12.0.jar:/Users/jhosimagudelo/.m2/repository/net/bytebuddy/byte-buddy/1.14.15/byte-buddy-1.14.15.jar:/Users/jhosimagudelo/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.15/byte-buddy-agent-1.14.15.jar:/Users/jhosimagudelo/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/Users/jhosimagudelo/.m2/repository/org/json/json/20210307/json-20210307.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/Users/jhosimagudelo"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2024-07-16"/>
+    <property name="java.home" value="/Users/jhosimagudelo/Library/Java/JavaVirtualMachines/temurin-22.0.2/Contents/Home"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="apple.awt.application.name" value="ForkedBooter"/>
+    <property name="surefire.real.class.path" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville/target/surefire/surefirebooter-20241222015045571_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="java.runtime.version" value="22.0.2+9"/>
+    <property name="user.name" value="jhosimagudelo"/>
+    <property name="stdout.encoding" value="UTF-8"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="15.1.1"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-22.0.2+9"/>
+    <property name="localRepository" value="/Users/jhosimagudelo/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/var/folders/f8/vv_lr4cj0c34t6hlfbmk6nrr0000gn/T/"/>
+    <property name="idea.version" value="2024.2.2"/>
+    <property name="java.version" value="22.0.2"/>
+    <property name="user.dir" value="/Users/jhosimagudelo/Documents/udem/ift2255/projetift2255_groupe14/application/maville"/>
+    <property name="os.arch" value="aarch64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/Users/jhosimagudelo/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="stderr.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="22.0.2+9"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="java.class.version" value="66.0"/>
+  </properties>
+  <testcase name="testMenuConnexionExit" classname="ca.umontreal.TestClass" time="0.007"/>
+  <testcase name="testMenuConnexionInvalidOption" classname="ca.umontreal.TestClass" time="0.002">
+    <system-out><![CDATA[
+Entrez un nombre de 1 à 3 pour choisir une option:
+
+]]></system-out>
+  </testcase>
+  <testcase name="testChoixMenuSoumettre" classname="ca.umontreal.TestClass" time="0.148">
+    <system-out><![CDATA[Rest API server stopped.
+]]></system-out>
+  </testcase>
+  <testcase name="testMenuConnexionSeConnecter" classname="ca.umontreal.TestClass" time="0.0"/>
+</testsuite>

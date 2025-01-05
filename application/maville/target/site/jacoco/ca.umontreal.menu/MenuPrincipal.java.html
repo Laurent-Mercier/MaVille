@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuPrincipal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuPrincipal.java</span></div><h1>MenuPrincipal.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class MenuPrincipal extends Menu {
+    public MenuPrincipal() {
+<span class="fc" id="L10">        super(&quot;principal&quot;);</span>
+<span class="fc" id="L11">    }</span>
+
+    /**
+     * Affiche le menu principal pour l'utilisateur en fonction de son type (résident ou intervenant).
+     * @param scanner
+     * @param user
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L19">        System.out.println(&quot;\nBienvenue dans MaVille! Entrez le numéro &quot; + </span>
+        &quot;entre parenthèses pour choisir une option:\n\n&quot;);
+        String [] options;
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        if (user.getUserType().equals(&quot;resident&quot;)) {</span>
+<span class="nc" id="L23">            options = new String[] {&quot;Consulter les travaux (1)&quot;, </span>
+            &quot;Notifications personnalisées (2)&quot;,
+            &quot;Requêtes de travail (3)&quot;, 
+            &quot;Consulter les entraves routières (4)&quot;,
+            &quot;Précisez vos préférences sur l'horaire des chantiers (5)&quot;, &quot;Fermer (6)&quot;};
+        } else {
+<span class="nc" id="L29">            options = new String[] {&quot;Requêtes de travaux (1)&quot;, </span>
+            &quot;Projets (2)&quot;,&quot;Fermer (3)&quot;};
+        }
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        for (int i=0; i&lt;options.length; i++) {</span>
+<span class="nc" id="L33">            System.out.println(options[i]);</span>
+        }
+<span class="nc" id="L35">        System.out.println(&quot;&quot;);</span>
+<span class="nc" id="L36">    }</span>
+
+    /**
+     * Met à jour le menu en fonction du choix de l'utilisateur et de son type (résident ou intervenant) et
+     * redirige l'utilisateur vers le menu approprié selon l'option sélectionnée.
+     * @param choix
+     * @param user
+     * @param scanner
+     * @return un menu
+     */
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+        
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (user.getUserType().equals(&quot;resident&quot;)) {</span>
+<span class="nc bnc" id="L49" title="All 7 branches missed.">            switch (choix) {</span>
+                case 1:
+<span class="nc" id="L51">                    Menu consulterTravaux = new MenuConsulterTravaux();</span>
+<span class="nc" id="L52">                    return consulterTravaux;</span>
+                case 2:
+<span class="nc" id="L54">                    Menu notif = new MenuNotification();</span>
+<span class="nc" id="L55">                    return notif;</span>
+                case 3:
+<span class="nc" id="L57">                    Menu soumettreRequete = new MenuSoumettreRequete();</span>
+<span class="nc" id="L58">                    return soumettreRequete;</span>
+                case 4:
+<span class="nc" id="L60">                    Menu consulEntraves = new MenuConsulterEntraves();</span>
+<span class="nc" id="L61">                    return consulEntraves;</span>
+                case 5:
+<span class="nc" id="L63">                    Menu prefTravaux = new MenuPreferencesTravaux();</span>
+<span class="nc" id="L64">                    return prefTravaux;</span>
+                case 6:
+<span class="nc" id="L66">                    Menu exit = new MenuExit();</span>
+<span class="nc" id="L67">                    return exit;</span>
+                default:
+<span class="nc" id="L69">                    System.out.println(&quot;\nEntrez un nombre de 1 à 6 pour &quot; +</span>
+                    &quot;choisir une option:\n&quot;);
+<span class="nc" id="L71">                    return this;</span>
+            }
+        } else {
+<span class="nc bnc" id="L74" title="All 4 branches missed.">            switch (choix) {</span>
+                case 1:
+<span class="nc" id="L76">                    Menu consulRequetes = new MenuConsulterRequetes();</span>
+<span class="nc" id="L77">                    return consulRequetes;</span>
+                case 2:
+<span class="nc" id="L79">                    Menu soumettreProjet = new MenuSoumettreProjet();</span>
+<span class="nc" id="L80">                    return soumettreProjet;</span>
+                case 3:
+<span class="nc" id="L82">                    Menu exit = new MenuExit();</span>
+<span class="nc" id="L83">                    return exit;</span>
+                default:
+<span class="nc" id="L85">                    System.out.println(&quot;\nEntrez un nombre de 1 à 3 pour &quot; + </span>
+                    &quot;choisir une option:\n&quot;);
+<span class="nc" id="L87">                    return this;</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

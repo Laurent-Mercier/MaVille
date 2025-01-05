@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuConsulterTravaux.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuConsulterTravaux.java</span></div><h1>MenuConsulterTravaux.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+public class MenuConsulterTravaux extends Menu {
+    /**
+     * Liste des quartiers
+     */
+<span class="nc" id="L19">    private static final String[] QUARTIERS = {</span>
+        &quot;Ahuntsic-Cartierville&quot;, &quot;Anjou&quot;, &quot;Côte-des-Neiges-Notre-Dame-de-Grâce&quot;,
+        &quot;LaSalle&quot;, &quot;Lachine&quot;, &quot;Le Plateau-Mont-Royal&quot;, &quot;Le Sud-Ouest&quot;,
+        &quot;L'Île-Bizard-Sainte-Geneviève&quot;, &quot;Mercier-Hochelaga-Maisonneuve&quot;,
+        &quot;Montréal-Nord&quot;, &quot;Outremont&quot;, &quot;Pierrefonds-Roxboro&quot;,
+        &quot;Rivière-des-Prairies-Pointe-aux-Trembles&quot;, &quot;Rosemont-La Petite-Patrie&quot;,
+        &quot;Saint-Laurent&quot;, &quot;Saint-Léonard&quot;, &quot;Verdun&quot;, &quot;Ville-Marie&quot;,
+        &quot;Villeray-Saint-Michel-Parc-Extension&quot;
+    };
+
+    public MenuConsulterTravaux() {
+<span class="nc" id="L30">        super(&quot;consulterTravaux&quot;);</span>
+<span class="nc" id="L31">        this.setElements(new ArrayList&lt;&gt;(Arrays.asList(&quot;Afficher les travaux (1)&quot;, &quot;Retour au menu principal (2)&quot;)));</span>
+<span class="nc" id="L32">    }</span>
+
+    /**
+     * Affiche le menu
+     */
+    @Override
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L39">        System.out.println(&quot;\nConsultez la liste des travaux actuels et prévus! &quot; +</span>
+                &quot;Entrez le numéro entre parenthèses pour choisir une option:\n&quot;);
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for (String option : this.getElements()) {</span>
+<span class="nc" id="L42">            System.out.println(option);</span>
+<span class="nc" id="L43">        }</span>
+<span class="nc" id="L44">        System.out.println();</span>
+<span class="nc" id="L45">    }</span>
+    /**
+     * Met à jour le menu en fonction du choix de l'utilisateur.
+     */
+    @Override
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L51" title="All 3 branches missed.">        switch (choix) {</span>
+            case 1:
+<span class="nc" id="L53">                return handleConsulterTravaux(scanner);</span>
+            case 2:
+<span class="nc" id="L55">                return new MenuPrincipal();</span>
+            default:
+<span class="nc" id="L57">                System.out.println(&quot;\nEntrez un nombre valide (1 ou 2) pour choisir une option.\n&quot;);</span>
+<span class="nc" id="L58">                return this;</span>
+        }
+    }
+    /**
+     * Gère la consultation des travaux en cours ou prévus pour les 3 prochains mois.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @return le menu actuel après l'exécution de l'action choisie.
+     */
+    private Menu handleConsulterTravaux(Scanner scanner) {
+<span class="nc" id="L67">        String type = null;</span>
+
+<span class="nc" id="L69">        displayTravauxAndProjets(type);</span>
+
+<span class="nc" id="L71">        System.out.println(&quot;\nVoulez-vous voir les travaux en cours ou prévus pour les 3 prochains mois?\n&quot; +</span>
+                &quot;(1) En cours\n(2) Prévus\n(3) Revenir en arrière&quot;);
+<span class="nc" id="L73">        int choixDeVision = validateChoiceInput(1, 3, scanner);</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (choixDeVision == 1) {</span>
+<span class="nc" id="L76">            handleTravauxEnCours(scanner, type);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        } else if (choixDeVision == 2) {</span>
+<span class="nc" id="L78">            handleTravauxPrevus(scanner, type);</span>
+        }
+<span class="nc" id="L80">        return this;</span>
+    }
+    /**
+     * Affiche les travaux et les projets disponibles.
+     * @param type le type de travaux ou projets à afficher
+     */
+    private void displayTravauxAndProjets(String type) {
+<span class="nc" id="L87">        HttpResponse&lt;String&gt; response = getTravauxApi();</span>
+<span class="nc" id="L88">        showTravaux(response.body(), type, 0);</span>
+
+<span class="nc" id="L90">        response = getProjetApi();</span>
+<span class="nc" id="L91">        showProjet(response.body(), type, 0);</span>
+<span class="nc" id="L92">    }</span>
+    /**
+     * Gère l'affichage des travaux et projets en cours, avec une option pour filtrer par quartier.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @param type le type de filtre à appliquer
+     */
+    private void handleTravauxEnCours(Scanner scanner, String type) {
+<span class="nc" id="L99">        System.out.println(&quot;\nTravaux en cours:\n&quot;);</span>
+    
+        // Fetch travaux from city's API
+<span class="nc" id="L102">        HttpResponse&lt;String&gt; travauxResponse = getTravauxApi();</span>
+<span class="nc" id="L103">        showTravaux(travauxResponse.body(), type, 0);</span>
+    
+        // Fetch projets with &quot;en cours&quot; status
+<span class="nc" id="L106">        HttpResponse&lt;String&gt; projetsResponse = getProjetApi();</span>
+<span class="nc" id="L107">        System.out.println(&quot;\nProjets en cours:\n&quot;);</span>
+<span class="nc" id="L108">        showProjet(projetsResponse.body(), &quot;en cours&quot;, 2); // Filter for &quot;en cours&quot; status</span>
+    
+        // Optional: Filter by quartier
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (promptFilterByQuartier(scanner)) {</span>
+<span class="nc" id="L112">            String quartier = promptQuartierSelection(scanner);</span>
+    
+<span class="nc" id="L114">            System.out.println(&quot;\nTravaux en cours pour &quot; + quartier + &quot;:\n&quot;);</span>
+<span class="nc" id="L115">            showTravaux(travauxResponse.body(), quartier, 1);</span>
+    
+<span class="nc" id="L117">            System.out.println(&quot;\nProjets en cours pour &quot; + quartier + &quot;:\n&quot;);</span>
+<span class="nc" id="L118">            showProjet(projetsResponse.body(), quartier, 3); // Filter for &quot;en cours&quot; + quartier</span>
+        }
+<span class="nc" id="L120">    }</span>
+
+    /**
+     * Gère l'affichage  projets prévus, avec une option pour filtrer par quartier.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @param type le type de filtre à appliquer
+     */
+    private void handleTravauxPrevus(Scanner scanner, String type) {
+<span class="nc" id="L128">        System.out.println(&quot;\nTravaux prévus:\n&quot;);</span>
+    
+        // Fetch projets with &quot;prévu&quot; status
+<span class="nc" id="L131">        HttpResponse&lt;String&gt; projetsResponse = getProjetApi();</span>
+<span class="nc" id="L132">        showProjet(projetsResponse.body(), &quot;prévu&quot;, 1); // Filter for &quot;prévu&quot; status</span>
+    
+        // Optional: Filter by quartier
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (promptFilterByQuartier(scanner)) {</span>
+<span class="nc" id="L136">            String quartier = promptQuartierSelection(scanner);</span>
+<span class="nc" id="L137">            System.out.println(&quot;\nTravaux prévus pour &quot; + quartier + &quot;:\n&quot;);</span>
+<span class="nc" id="L138">            showProjet(projetsResponse.body(), quartier, 4); // Filter for &quot;prévu&quot; + quartier</span>
+        }
+<span class="nc" id="L140">    }</span>
+
+    /**
+     * Demande si l'utilisateur veut filtrer par quartier.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @return
+     */
+    private boolean promptFilterByQuartier(Scanner scanner) {
+<span class="nc" id="L148">        System.out.println(&quot;\nVoulez-vous filtrer par quartier?\n(1) Oui\n(2) Revenir en arrière&quot;);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        return validateChoiceInput(1, 2, scanner) == 1;</span>
+    }
+
+    /**
+     * Guide l'utilisateur pour le choix des quartiers
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @return le choix de l'utilisateur
+     */
+    private String promptQuartierSelection(Scanner scanner) {
+<span class="nc" id="L158">        System.out.println(&quot;\nVoici une liste des quartiers disponibles pour filtrer:\n&quot;);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        for (String quartier : QUARTIERS) {</span>
+<span class="nc" id="L160">            System.out.println(quartier);</span>
+        }
+<span class="nc" id="L162">        System.out.print(&quot;\nPar quel quartier voulez-vous filtrer: &quot;);</span>
+<span class="nc" id="L163">        return scanner.nextLine();</span>
+    }
+    /**
+     * Valide l'input du scanner
+     * @param scanner le scanner pour la saisie
+     * @return le choix validé
+     */
+    private int validateChoiceInput(int lowerBound, int upperBound, Scanner scanner) {
+        while (true) {
+            try {
+<span class="nc" id="L173">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">                if (choix &gt;= lowerBound &amp;&amp; choix &lt;= upperBound) {</span>
+<span class="nc" id="L175">                    return choix;</span>
+                }
+<span class="nc" id="L177">            } catch (NumberFormatException ignored) {</span>
+<span class="nc" id="L178">            }</span>
+<span class="nc" id="L179">            System.out.println(&quot;\nVeuillez entrer un numéro entre &quot; + lowerBound + &quot; et &quot; + upperBound + &quot;.\n&quot;);</span>
+        }
+    }
+    /**
+     * Récupère les données des travaux en cours via un appel à l'API.
+     * @return réponse HTTP
+     */
+    private HttpResponse&lt;String&gt; getTravauxApi() {
+<span class="nc" id="L187">        return sendApiRequest(&quot;http://localhost:7070/travaux-en-cours&quot;);</span>
+    }
+    /**
+     * Récupère les données des projets futurs via un appel à l'API.
+     * @return une réponse HTTP
+     */
+    private HttpResponse&lt;String&gt; getProjetApi() {
+<span class="nc" id="L194">        return sendApiRequest(&quot;http://localhost:7070/projets_futurs&quot;);</span>
+    }
+
+    /**
+     * Envoie une requête GET à l'URL spécifiée.
+     * @param url l'URL de la requete
+     * @return une réponse HTTP
+     */
+    private HttpResponse&lt;String&gt; sendApiRequest(String url) {
+<span class="nc" id="L203">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L204">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L205">                .uri(URI.create(url))</span>
+<span class="nc" id="L206">                .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L207">                .GET()</span>
+<span class="nc" id="L208">                .build();</span>
+        try {
+<span class="nc" id="L210">            return client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L211">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L212">            throw new RuntimeException(e);</span>
+        }
+    }
+
+    /**
+     * Affiche la liste des travaux en fonction des données et du filtre spécifiés.
+     * @param body contient les travaux
+     * @param filter filtre utilisé
+     * @param filterType type du filtre
+     */
+    public void showTravaux(String body, String filter, int filterType) {
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (body == null) {</span>
+<span class="nc" id="L224">            System.out.println(&quot;\nErreur... Veuillez réessayer plus tard!\n&quot;);</span>
+<span class="nc" id="L225">            return;</span>
+        }
+<span class="nc" id="L227">        JSONArray records = new JSONObject(body).getJSONObject(&quot;result&quot;).getJSONArray(&quot;records&quot;);</span>
+<span class="nc" id="L228">        records.forEach(record -&gt; {</span>
+<span class="nc" id="L229">            JSONObject rec = (JSONObject) record;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if (filterMatches(rec, filter, filterType)) {</span>
+<span class="nc" id="L231">                printDetails(&quot;Identifiant du travail&quot;, rec.optString(&quot;id&quot;),</span>
+<span class="nc" id="L232">                        &quot;Arrondissement&quot;, rec.optString(&quot;boroughid&quot;),</span>
+<span class="nc" id="L233">                        &quot;Status&quot;, rec.optString(&quot;currentstatus&quot;),</span>
+<span class="nc" id="L234">                        &quot;Motif du travail&quot;, rec.optString(&quot;reason_category&quot;),</span>
+<span class="nc" id="L235">                        &quot;Catégorie d'intervenant&quot;, rec.optString(&quot;submittercategory&quot;),</span>
+<span class="nc" id="L236">                        &quot;Nom de l'intervenant&quot;, rec.optString(&quot;organizationname&quot;));</span>
+            }
+<span class="nc" id="L238">        });</span>
+<span class="nc" id="L239">    }</span>
+
+    /**
+     * Vérifie si un enregistrement correspond au filtre spécifié.
+     * @param record enregistrement
+     * @param filter filtre
+     * @param filterType type de filtre
+     * @return boolean
+     */
+    private boolean filterMatches(JSONObject record, String filter, int filterType) {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (filterType == 1) {</span>
+<span class="nc" id="L250">            return record.optString(&quot;boroughid&quot;).equalsIgnoreCase(filter);</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        } else if (filterType == 2) {</span>
+<span class="nc" id="L252">            return record.optString(&quot;reason_category&quot;).equalsIgnoreCase(filter);</span>
+        }
+<span class="nc" id="L254">        return true; // No filter applied</span>
+    }
+    /**
+    * Affiche la liste des projets en fonction des données et du filtre spécifiés.
+    */
+    public void showProjet(String body, String filter, int filterType) {
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (body == null) {</span>
+<span class="nc" id="L261">            System.out.println(&quot;\nPas de projets correspondants.\n&quot;);</span>
+<span class="nc" id="L262">            return;</span>
+        }
+<span class="nc" id="L264">        JSONArray projets = new JSONArray(body);</span>
+<span class="nc" id="L265">        projets.forEach(projet -&gt; {</span>
+<span class="nc" id="L266">            JSONObject proj = (JSONObject) projet;</span>
+<span class="nc" id="L267">            String statut = proj.optString(&quot;statut&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L268">            String quartiersAffecte = proj.optString(&quot;quartiersAffecte&quot;, &quot;&quot;).replace(&quot;\&quot;&quot;, &quot;&quot;).trim();</span>
+
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            boolean showAll = (filterType == 0); // Show all projects</span>
+<span class="nc bnc" id="L271" title="All 4 branches missed.">            boolean showEnCours = (filterType == 2 &amp;&amp; statut.equalsIgnoreCase(&quot;en cours&quot;)); // &quot;en cours&quot; only</span>
+<span class="nc bnc" id="L272" title="All 6 branches missed.">            boolean showEnCoursAndQuartier = (filterType == 3 &amp;&amp; statut.equalsIgnoreCase(&quot;en cours&quot;) &amp;&amp; quartiersAffecte.contains(filter)); // &quot;en cours&quot; + quartier</span>
+<span class="nc bnc" id="L273" title="All 4 branches missed.">            boolean showPrevu = (filterType == 1 &amp;&amp; statut.equalsIgnoreCase(&quot;prévu&quot;)); // &quot;prévu&quot; only</span>
+<span class="nc bnc" id="L274" title="All 6 branches missed.">            boolean showPrevuAndQuartier = (filterType == 4 &amp;&amp; statut.equalsIgnoreCase(&quot;prévu&quot;) &amp;&amp; quartiersAffecte.contains(filter)); // &quot;prévu&quot; + quartier</span>
+
+            // Determine if this project should be displayed based on the filter
+<span class="nc bnc" id="L277" title="All 10 branches missed.">            if (showAll || showEnCours || showEnCoursAndQuartier || showPrevu || showPrevuAndQuartier) {</span>
+<span class="nc" id="L278">                printDetails(</span>
+<span class="nc" id="L279">                    &quot;Titre du projet&quot;, proj.optString(&quot;titreProjet&quot;, &quot;N/A&quot;),</span>
+<span class="nc" id="L280">                    &quot;Description&quot;, proj.optString(&quot;description&quot;, &quot;N/A&quot;),</span>
+<span class="nc" id="L281">                    &quot;Type de travaux&quot;, proj.optString(&quot;typeDeTravaux&quot;, &quot;N/A&quot;),</span>
+                    &quot;Quartiers affectés&quot;, quartiersAffecte,
+<span class="nc" id="L283">                    &quot;Date de début&quot;, proj.optString(&quot;dateDebut&quot;, &quot;N/A&quot;),</span>
+<span class="nc" id="L284">                    &quot;Date de fin&quot;, proj.optString(&quot;dateFin&quot;, &quot;N/A&quot;),</span>
+<span class="nc" id="L285">                    &quot;Horaire&quot;, proj.optString(&quot;horaire&quot;, &quot;N/A&quot;),</span>
+                    &quot;Statut&quot;, statut
+                );
+            }
+<span class="nc" id="L289">        });</span>
+<span class="nc" id="L290">    }</span>
+
+    /**
+     * Affiche les details
+     * @param details details
+     */
+    private void printDetails(String... details) {
+<span class="nc" id="L297">        System.out.println(&quot;\n=================================================&quot;);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        for (int i = 0; i &lt; details.length; i += 2) {</span>
+<span class="nc" id="L299">            System.out.println(details[i] + &quot;: &quot; + details[i + 1]);</span>
+        }
+<span class="nc" id="L301">        System.out.println(&quot;=================================================\n&quot;);</span>
+<span class="nc" id="L302">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

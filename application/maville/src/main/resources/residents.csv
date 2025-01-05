@@ -1,0 +1,5 @@
+nom,courriel,password,dateNaissance,telephone,adresse,arrondissement,horaire
+Laurent Mercier,laurent.mercier@umontreal.ca,FFFF8888,03/05/2000,,"""""""blablabla, H2G 2N7""""""",Rosemont-La Petite-Patrie,Lundi=09:00->12:00;Mardi=09:00->16:00;Mercredi=Aucun;Jeudi=06:00->13:00;Vendredi=Aucun;Samedi=Aucun;Dimanche=Aucun;
+Dromadaire Chameau,dromadaire.chameau@umontreal.ca,FFFF9999,04/04/2001,514-514-5144,"""""""adresse, H2M 2L6""""""",Ahuntsic-Cartierville
+John Cena,john.cena@umontreal.ca,FFFF0000,06/12/1998,,"""""""adresseJ, H5A 2C2""""""",Ville-Marie
+Ned Stark,ned.stark@winterfell.com,FFFF2222,04/12/1997,,"""""""winterIsComing, H1A 2P2""""""",Rivière-des-Prairies-Pointe-aux-Trembles

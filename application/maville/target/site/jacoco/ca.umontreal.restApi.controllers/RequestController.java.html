@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.restApi.controllers</a> &gt; <span class="el_source">RequestController.java</span></div><h1>RequestController.java</h1><pre class="source lang-java linenums">package ca.umontreal.restApi.controllers;
+
+import ca.umontreal.restApi.csvManager.CsvManager;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class RequestController {
+    private final CsvManager csvManager;
+
+<span class="nc" id="L12">    public RequestController(Javalin app) {</span>
+<span class="nc" id="L13">        this.csvManager = new CsvManager();</span>
+
+<span class="nc" id="L15">        app.post(&quot;/soumettre-requetes&quot;, this::handleSubmitRequest);</span>
+<span class="nc" id="L16">        app.get(&quot;/consulter-requetes&quot;, this::handleConsultRequests);</span>
+<span class="nc" id="L17">        app.get(&quot;/consulter-requetes-filtre&quot;, this::handleFilteredRequests); // New endpoint for filtering requests</span>
+<span class="nc" id="L18">        app.get(&quot;/consulter-candidatures&quot;, this::handleConsultCandidatures);</span>
+<span class="nc" id="L19">        app.post(&quot;/poser-candidature&quot;, this::handlePoseCandidature);</span>
+<span class="nc" id="L20">        app.post(&quot;/retirer-candidature&quot;, this::handleRetirerCandidature);</span>
+<span class="nc" id="L21">        app.post(&quot;/refuser-candidature&quot;, this::handleRefuserCandidature);</span>
+<span class="nc" id="L22">        app.post(&quot;/accepter-candidature&quot;, this::handleAcceptCandidature);</span>
+<span class="nc" id="L23">        app.get(&quot;/lister-candidatures&quot;, this::handleListerCandidatures);</span>
+<span class="nc" id="L24">    }</span>
+
+    /**
+     * Gère la soumission d'une requête.
+     * @param ctx
+     */
+    private void handleSubmitRequest(Context ctx) {
+<span class="nc" id="L31">        String titreDuTravail = ctx.formParam(&quot;titreDuTravail&quot;);</span>
+<span class="nc" id="L32">        String description = ctx.formParam(&quot;description&quot;);</span>
+<span class="nc" id="L33">        String typeDeTravaux = ctx.formParam(&quot;typeDeTravaux&quot;);</span>
+<span class="nc" id="L34">        String dateDebut = ctx.formParam(&quot;dateDebut&quot;);</span>
+<span class="nc" id="L35">        String quartier = ctx.formParam(&quot;quartier&quot;);</span>
+<span class="nc" id="L36">        String resident = ctx.formParam(&quot;resident&quot;);</span>
+<span class="nc" id="L37">        String intervenant = ctx.formParam(&quot;intervenant&quot;);</span>
+
+        try {
+<span class="nc" id="L40">            int nextRequeteId = getNextRequeteId();</span>
+<span class="nc" id="L41">            csvManager.writeRequestToCsv(titreDuTravail, description, typeDeTravaux, dateDebut, quartier, resident, intervenant, nextRequeteId);</span>
+<span class="nc" id="L42">            ctx.status(200).result(&quot;Requête soumise avec succès.&quot;);</span>
+<span class="nc" id="L43">        } catch (Exception e) {</span>
+<span class="nc" id="L44">            e.printStackTrace();</span>
+<span class="nc" id="L45">            ctx.status(500).result(&quot;Erreur lors de la soumission de la requête&quot;);</span>
+<span class="nc" id="L46">        }</span>
+<span class="nc" id="L47">    }</span>
+
+    /**
+     * Gère la liste des candidatures pour un intervenant spécifique.
+     * @param ctx
+     */
+    private void handleListerCandidatures(Context ctx) {
+<span class="nc" id="L54">        String intervenant = ctx.queryParam(&quot;intervenant&quot;);</span>
+
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (intervenant == null || intervenant.isEmpty()) {</span>
+<span class="nc" id="L57">            ctx.status(400).result(&quot;Paramètre 'intervenant' manquant ou vide.&quot;);</span>
+<span class="nc" id="L58">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L62">            JSONArray candidatures = csvManager.readCandidaturesFromCsv();</span>
+
+            // Check if there are any candidatures at all
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (candidatures.isEmpty()) {</span>
+<span class="nc" id="L66">                ctx.status(404).result(&quot;Aucune candidature n'a été soumise pour le moment.&quot;);</span>
+<span class="nc" id="L67">                return;</span>
+            }
+
+            // Filter candidatures for the specific intervenant
+<span class="nc" id="L71">            JSONArray filteredCandidatures = new JSONArray();</span>
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            for (int i = 0; i &lt; candidatures.length(); i++) {</span>
+<span class="nc" id="L74">                JSONObject candidature = candidatures.getJSONObject(i);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                if (intervenant.equalsIgnoreCase(candidature.optString(&quot;intervenant&quot;))) {</span>
+<span class="nc" id="L76">                    filteredCandidatures.put(candidature);</span>
+                }
+            }
+
+            // Respond if no candidatures exist for the specific intervenant
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (filteredCandidatures.isEmpty()) {</span>
+<span class="nc" id="L82">                ctx.status(404).result(&quot;Aucune candidature trouvée pour cet intervenant.&quot;);</span>
+            } else {
+<span class="nc" id="L84">                ctx.result(filteredCandidatures.toString());</span>
+<span class="nc" id="L85">                ctx.status(200);</span>
+            }
+<span class="nc" id="L87">        } catch (Exception e) {</span>
+<span class="nc" id="L88">            e.printStackTrace();</span>
+<span class="nc" id="L89">            ctx.status(500).result(&quot;Erreur lors de la lecture des candidatures.&quot;);</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    }</span>
+
+    /**
+     * Gère la consultation des requêtes soumises.
+     * @param ctx
+     */
+    private void handleConsultRequests(Context ctx) {
+        try {
+<span class="nc" id="L99">            JSONArray jsonArray = csvManager.readRequestFromCsv();</span>
+<span class="nc" id="L100">            ctx.result(jsonArray.toString());</span>
+<span class="nc" id="L101">            ctx.status(200);</span>
+<span class="nc" id="L102">        } catch (Exception e) {</span>
+<span class="nc" id="L103">            e.printStackTrace();</span>
+<span class="nc" id="L104">            ctx.status(500).result(&quot;Erreur lors de la lecture des requêtes.&quot;);</span>
+<span class="nc" id="L105">        }</span>
+<span class="nc" id="L106">    }</span>
+
+    /**
+     * Gère la récupération des requêtes filtrées par quartier.
+     * @param ctx
+     */
+    private void handleFilteredRequests(Context ctx) {
+<span class="nc" id="L113">        String quartier = ctx.queryParam(&quot;quartier&quot;);</span>
+
+<span class="nc bnc" id="L115" title="All 4 branches missed.">        if (quartier == null || quartier.isEmpty()) {</span>
+<span class="nc" id="L116">            ctx.status(400).result(&quot;Paramètre 'quartier' manquant ou vide.&quot;);</span>
+<span class="nc" id="L117">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L121">            JSONArray requests = csvManager.readRequestFromCsv();</span>
+<span class="nc" id="L122">            JSONArray filteredRequests = new JSONArray();</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            for (int i = 0; i &lt; requests.length(); i++) {</span>
+<span class="nc" id="L125">                JSONObject request = requests.getJSONObject(i);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if (quartier.equalsIgnoreCase(request.optString(&quot;quartier&quot;))) {</span>
+<span class="nc" id="L127">                    filteredRequests.put(request);</span>
+                }
+            }
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (filteredRequests.isEmpty()) {</span>
+<span class="nc" id="L132">                ctx.status(404).result(&quot;Aucune requête trouvée pour ce quartier.&quot;);</span>
+            } else {
+<span class="nc" id="L134">                ctx.result(filteredRequests.toString());</span>
+<span class="nc" id="L135">                ctx.status(200);</span>
+            }
+<span class="nc" id="L137">        } catch (Exception e) {</span>
+<span class="nc" id="L138">            e.printStackTrace();</span>
+<span class="nc" id="L139">            ctx.status(500).result(&quot;Erreur lors de la lecture des requêtes filtrées.&quot;);</span>
+<span class="nc" id="L140">        }</span>
+<span class="nc" id="L141">    }</span>
+
+    /**
+     * Gère la consultation des candidatures pour une requête spécifique.
+     * @param ctx
+     */
+    private void handleConsultCandidatures(Context ctx) {
+<span class="nc" id="L148">        String requeteId = ctx.queryParam(&quot;requeteId&quot;);</span>
+<span class="nc bnc" id="L149" title="All 4 branches missed.">        if (requeteId == null || requeteId.isEmpty()) {</span>
+<span class="nc" id="L150">            ctx.status(400).result(&quot;ID de requête manquant.&quot;);</span>
+<span class="nc" id="L151">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L155">            JSONArray candidatures = csvManager.readCandidaturesFromCsv();</span>
+<span class="nc" id="L156">            JSONArray filteredCandidatures = new JSONArray();</span>
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            for (int i = 0; i &lt; candidatures.length(); i++) {</span>
+<span class="nc" id="L159">                JSONObject candidature = candidatures.getJSONObject(i);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (requeteId.equals(candidature.getString(&quot;requeteId&quot;))) {</span>
+<span class="nc" id="L161">                    filteredCandidatures.put(candidature);</span>
+                }
+            }
+
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            if (filteredCandidatures.isEmpty()) {</span>
+<span class="nc" id="L166">                ctx.status(404).result(&quot;Aucune candidature trouvée pour cette requête.&quot;);</span>
+            } else {
+<span class="nc" id="L168">                ctx.result(filteredCandidatures.toString());</span>
+<span class="nc" id="L169">                ctx.status(200);</span>
+            }
+<span class="nc" id="L171">        } catch (Exception e) {</span>
+<span class="nc" id="L172">            e.printStackTrace();</span>
+<span class="nc" id="L173">            ctx.status(500).result(&quot;Erreur lors de la lecture des candidatures.&quot;);</span>
+<span class="nc" id="L174">        }</span>
+<span class="nc" id="L175">    }</span>
+
+    /**
+     * Gère la soumission d'une candidature pour une requête spécifique.
+     * @param ctx
+     */
+    private void handlePoseCandidature(Context ctx) {
+<span class="nc" id="L182">        String requeteId = ctx.formParam(&quot;requeteId&quot;);</span>
+<span class="nc" id="L183">        String intervenant = ctx.formParam(&quot;intervenant&quot;);</span>
+
+<span class="nc bnc" id="L185" title="All 8 branches missed.">        if (requeteId == null || intervenant == null || requeteId.isEmpty() || intervenant.isEmpty()) {</span>
+<span class="nc" id="L186">            ctx.status(400).result(&quot;Données manquantes pour poser une candidature.&quot;);</span>
+<span class="nc" id="L187">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L191">            csvManager.writeCandidatureToCsv(requeteId, intervenant, false);</span>
+<span class="nc" id="L192">            ctx.status(200).result(&quot;Candidature posée avec succès.&quot;);</span>
+<span class="nc" id="L193">        } catch (Exception e) {</span>
+<span class="nc" id="L194">            e.printStackTrace();</span>
+<span class="nc" id="L195">            ctx.status(500).result(&quot;Erreur lors de la soumission de la candidature.&quot;);</span>
+<span class="nc" id="L196">        }</span>
+<span class="nc" id="L197">    }</span>
+
+    /**
+     * Gère le retrait d'une candidature pour une requête spécifique.
+     * @param ctx
+     */
+    private void handleRetirerCandidature(Context ctx) {
+<span class="nc" id="L204">        String requeteId = ctx.formParam(&quot;requeteId&quot;);</span>
+<span class="nc" id="L205">        String intervenant = ctx.formParam(&quot;intervenant&quot;);</span>
+
+<span class="nc bnc" id="L207" title="All 8 branches missed.">        if (requeteId == null || intervenant == null || requeteId.isEmpty() || intervenant.isEmpty()) {</span>
+<span class="nc" id="L208">            ctx.status(400).result(&quot;Données manquantes pour retirer une candidature.&quot;);</span>
+<span class="nc" id="L209">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L213">            boolean success = csvManager.removeCandidatureFromCsv(requeteId, intervenant);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            if (success) {</span>
+<span class="nc" id="L215">                ctx.status(200).result(&quot;Candidature retirée avec succès.&quot;);</span>
+            } else {
+<span class="nc" id="L217">                ctx.status(404).result(&quot;Candidature introuvable.&quot;);</span>
+            }
+<span class="nc" id="L219">        } catch (Exception e) {</span>
+<span class="nc" id="L220">            e.printStackTrace();</span>
+<span class="nc" id="L221">            ctx.status(500).result(&quot;Erreur lors du retrait de la candidature.&quot;);</span>
+<span class="nc" id="L222">        }</span>
+<span class="nc" id="L223">    }</span>
+
+    /**
+     * Gère le refus d'une candidature pour une requête spécifique.
+     * @param ctx
+     */
+    private void handleRefuserCandidature(Context ctx) {
+<span class="nc" id="L230">        String requeteId = ctx.formParam(&quot;requeteId&quot;);</span>
+<span class="nc" id="L231">        String intervenant = ctx.formParam(&quot;intervenant&quot;);</span>
+    
+<span class="nc bnc" id="L233" title="All 8 branches missed.">        if (requeteId == null || intervenant == null || requeteId.isEmpty() || intervenant.isEmpty()) {</span>
+<span class="nc" id="L234">            ctx.status(400).result(&quot;Données manquantes pour refuser une candidature.&quot;);</span>
+<span class="nc" id="L235">            return;</span>
+        }
+    
+        try {
+<span class="nc" id="L239">            csvManager.writeCandidatureToCsv(requeteId, intervenant, false);</span>
+<span class="nc" id="L240">            ctx.status(200).result(&quot;Candidature refusée avec succès.&quot;);</span>
+<span class="nc" id="L241">        } catch (Exception e) {</span>
+<span class="nc" id="L242">            e.printStackTrace();</span>
+<span class="nc" id="L243">            ctx.status(500).result(&quot;Erreur lors du refus de la candidature.&quot;);</span>
+<span class="nc" id="L244">        }</span>
+<span class="nc" id="L245">    }</span>
+
+    /**
+     * Gère l'acceptation d'une candidature pour une requête spécifique.
+     * @param ctx
+     */
+    private void handleAcceptCandidature(Context ctx) {
+<span class="nc" id="L252">        String requeteId = ctx.formParam(&quot;requeteId&quot;);</span>
+<span class="nc" id="L253">        String intervenant = ctx.formParam(&quot;intervenant&quot;);</span>
+    
+<span class="nc bnc" id="L255" title="All 8 branches missed.">        if (requeteId == null || intervenant == null || requeteId.isEmpty() || intervenant.isEmpty()) {</span>
+<span class="nc" id="L256">            ctx.status(400).result(&quot;Données manquantes pour accepter une candidature.&quot;);</span>
+<span class="nc" id="L257">            return;</span>
+        }
+    
+        try {
+<span class="nc" id="L261">            csvManager.writeCandidatureToCsv(requeteId, intervenant, true);</span>
+<span class="nc" id="L262">            ctx.status(200).result(&quot;Candidature acceptée avec succès.&quot;);</span>
+<span class="nc" id="L263">        } catch (Exception e) {</span>
+<span class="nc" id="L264">            e.printStackTrace();</span>
+<span class="nc" id="L265">            ctx.status(500).result(&quot;Erreur lors de l'acceptation de la candidature.&quot;);</span>
+<span class="nc" id="L266">        }</span>
+<span class="nc" id="L267">    }</span>
+
+    /**
+     * Génère le prochain identifiant unique pour une nouvelle requête.
+     * @return
+     */
+    private int getNextRequeteId() {
+        try {
+<span class="nc" id="L275">            JSONArray requests = csvManager.readRequestFromCsv();</span>
+<span class="nc" id="L276">            int maxId = 0;</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            for (int i = 0; i &lt; requests.length(); i++) {</span>
+<span class="nc" id="L278">                JSONObject request = requests.getJSONObject(i);</span>
+<span class="nc" id="L279">                int currentId = request.optInt(&quot;requeteId&quot;, 0);</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                if (currentId &gt; maxId) {</span>
+<span class="nc" id="L281">                    maxId = currentId;</span>
+                }
+            }
+<span class="nc" id="L284">            return maxId + 1;</span>
+<span class="nc" id="L285">        } catch (Exception e) {</span>
+<span class="nc" id="L286">            e.printStackTrace();</span>
+<span class="nc" id="L287">            return 1; // Start from 1 if there are no entries or an error occurs</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

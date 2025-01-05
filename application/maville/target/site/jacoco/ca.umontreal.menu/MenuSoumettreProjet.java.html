@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuSoumettreProjet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuSoumettreProjet.java</span></div><h1>MenuSoumettreProjet.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class MenuSoumettreProjet extends Menu {
+    public MenuSoumettreProjet() {
+<span class="nc" id="L23">        super(&quot;soumettreProjet&quot;);</span>
+<span class="nc" id="L24">        String[] options = {&quot;Soumettre un nouveau projet (1)&quot;, &quot;Faire un suivi (2)&quot;, &quot;Retour (3)&quot;};</span>
+<span class="nc" id="L25">        this.setElements(new ArrayList&lt;&gt;(Arrays.asList(options)));</span>
+<span class="nc" id="L26">    }</span>
+
+    /**
+     * Affiche le menu permettant à l'utilisateur de soumettre un nouveau projet ou de suivre des projets existants.
+     * @param scanner
+     * @param user
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L34">        System.out.println(&quot;\nSoumettez un nouveau projet ou faites un suivi des projets existants! &quot; +</span>
+                &quot;Entrez le numéro entre parenthèses pour choisir une option:\n&quot;);
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        for (String option : this.getElements()) {</span>
+<span class="nc" id="L37">            System.out.println(option);</span>
+<span class="nc" id="L38">        }</span>
+<span class="nc" id="L39">        System.out.println();</span>
+<span class="nc" id="L40">    }</span>
+
+    /**
+     * Met à jour le menu en fonction du choix de l'utilisateur.
+     * @param choix
+     * @param user
+     * @param scanner
+     * @return un menu
+     */
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L50" title="All 4 branches missed.">        switch (choix) {</span>
+            case 1:
+<span class="nc" id="L52">                handleNewProject(scanner, user);</span>
+<span class="nc" id="L53">                break;</span>
+            case 2:
+<span class="nc" id="L55">                handleProjectFollowUp(scanner, user);</span>
+<span class="nc" id="L56">                break;</span>
+            case 3:
+<span class="nc" id="L58">                return new MenuPrincipal();</span>
+            default:
+<span class="nc" id="L60">                System.out.println(&quot;\nEntrez un nombre de 1 à 3 pour choisir une option:\n&quot;);</span>
+<span class="nc" id="L61">                return this;</span>
+        }
+
+<span class="nc" id="L64">        System.out.println(&quot;\nEntrez 1 pour revenir en arrière ou 2 pour revenir au menu principal:\n&quot;);</span>
+<span class="nc" id="L65">        int choix2 = validateChoiceInput(1, 2, scanner);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        return choix2 == 1 ? this : new MenuPrincipal();</span>
+    }
+
+    /**
+     * * Gère la soumission d'un nouveau projet par l'utilisateur.
+     * @param scanner
+     * @param user
+     */
+    private void handleNewProject(Scanner scanner, User user) {
+<span class="nc" id="L75">        System.out.println(&quot;\nEntrez les détails du projet:\n&quot;);</span>
+    
+<span class="nc" id="L77">        System.out.println(&quot;Titre du projet:&quot;);</span>
+<span class="nc" id="L78">        String titreProjet = scanner.nextLine();</span>
+    
+<span class="nc" id="L80">        System.out.println(&quot;Description:&quot;);</span>
+<span class="nc" id="L81">        String description = scanner.nextLine();</span>
+    
+<span class="nc" id="L83">        System.out.println(&quot;Type de travaux:&quot;);</span>
+<span class="nc" id="L84">        String typeDeTravaux = scanner.nextLine();</span>
+    
+<span class="nc" id="L86">        System.out.println(&quot;Quartiers affectés (séparés par des virgules):&quot;);</span>
+<span class="nc" id="L87">        String quartiersAffecte = scanner.nextLine().replace(&quot;\&quot;&quot;, &quot;&quot;) // Remove excessive quotes</span>
+<span class="nc" id="L88">        .trim();</span>
+    
+        String dateDebut;
+        while (true) {
+<span class="nc" id="L92">            System.out.println(&quot;\nQuel est la date de début (dd/MM/yyyy):\n&quot;);</span>
+<span class="nc" id="L93">            dateDebut = scanner.nextLine();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (validateDate(dateDebut)) {</span>
+<span class="nc" id="L95">                break;</span>
+            } else {
+<span class="nc" id="L97">                System.out.println(&quot;\nDate invalide. Elle doit être une date future (format: dd/MM/yyyy).\n&quot;);</span>
+            }
+        }
+
+        String dateFin;
+        while (true) {
+<span class="nc" id="L103">            System.out.println(&quot;\nQuel est la date de fin (dd/MM/yyyy):\n&quot;);</span>
+<span class="nc" id="L104">            dateFin = scanner.nextLine();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (validateDate(dateDebut)) {</span>
+<span class="nc" id="L106">                break;</span>
+            } else {
+<span class="nc" id="L108">                System.out.println(&quot;\nDate invalide. Elle doit être une date future (format: dd/MM/yyyy).\n&quot;);</span>
+            }
+        }
+<span class="nc" id="L111">        System.out.println(&quot;Fournissez l'horaire du projet pour chaque jour de la semaine (format: HH:MM-&gt;HH:MM ou Aucun):\n&quot;);</span>
+<span class="nc" id="L112">        StringBuilder horaire = new StringBuilder();</span>
+    
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        for (String day : new String[]{&quot;Lundi&quot;, &quot;Mardi&quot;, &quot;Mercredi&quot;, &quot;Jeudi&quot;, &quot;Vendredi&quot;, &quot;Samedi&quot;, &quot;Dimanche&quot;}) {</span>
+<span class="nc" id="L115">            System.out.println(day + &quot;:&quot;);</span>
+            while (true) {
+<span class="nc" id="L117">                String input = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L118" title="All 4 branches missed.">                if (input.equalsIgnoreCase(&quot;Aucun&quot;) || isValidHourRange(input)) {</span>
+<span class="nc" id="L119">                    horaire.append(day).append(&quot;=&quot;).append(input).append(&quot;;&quot;);</span>
+<span class="nc" id="L120">                    break;</span>
+                } else {
+<span class="nc" id="L122">                    System.out.println(&quot;Format invalide. Entrez HH:MM-&gt;HH:MM ou Aucun:\n&quot;);</span>
+                }
+<span class="nc" id="L124">            }</span>
+        }
+    
+<span class="nc" id="L127">        String validatedHoraire=validateAgainstResidentPreferences(quartiersAffecte, horaire.toString(), scanner);</span>
+<span class="nc" id="L128">        horaire = new StringBuilder(validatedHoraire);</span>
+<span class="nc" id="L129">        boolean success = submitProjectToApi(user.getCourriel(), titreProjet, description, typeDeTravaux, quartiersAffecte, dateDebut, dateFin, horaire.toString());</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L131">            System.out.println(&quot;\nProjet soumis avec succès!\n&quot;);</span>
+<span class="nc" id="L132">            sendNotificationsToResidents(quartiersAffecte, titreProjet, description);</span>
+        } else {
+<span class="nc" id="L134">            System.out.println(&quot;\nErreur lors de la soumission du projet. Veuillez réessayer plus tard.\n&quot;);</span>
+        }
+<span class="nc" id="L136">    }</span>
+
+    /**
+     * Gère le suivi des projets existants pour l'utilisateur.
+     * @param scanner
+     * @param user
+     */
+    private void handleProjectFollowUp(Scanner scanner, User user) {
+<span class="nc" id="L144">        System.out.println(&quot;\nProjets existants:\n&quot;);</span>
+<span class="nc" id="L145">        String url = &quot;http://localhost:7070/getProjets&quot;;</span>
+<span class="nc" id="L146">        HttpClient client = HttpClient.newHttpClient();</span>
+    
+        try {
+<span class="nc" id="L149">            HttpResponse&lt;String&gt; response = client.send(HttpRequest.newBuilder().uri(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L151">                JSONArray projets = new JSONArray(response.body());</span>
+<span class="nc" id="L152">                boolean hasProjects = false;</span>
+    
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                for (int i = 0; i &lt; projets.length(); i++) {</span>
+<span class="nc" id="L155">                    JSONObject projet = projets.getJSONObject(i);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                    if (projet.optString(&quot;intervenant&quot;).equals(user.getCourriel())) {</span>
+<span class="nc" id="L157">                        hasProjects = true;</span>
+<span class="nc" id="L158">                        System.out.println(&quot;ID: &quot; + projet.getInt(&quot;id&quot;));</span>
+<span class="nc" id="L159">                        System.out.println(&quot;Titre: &quot; + projet.getString(&quot;titreProjet&quot;));</span>
+<span class="nc" id="L160">                        System.out.println(&quot;Statut: &quot; + projet.getString(&quot;statut&quot;));</span>
+<span class="nc" id="L161">                        System.out.println(&quot;--------------------------------------&quot;);</span>
+                    }
+                }
+    
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                if (!hasProjects) {</span>
+<span class="nc" id="L166">                    System.out.println(&quot;Vous n'avez aucun projet pour le moment.\n&quot;);</span>
+<span class="nc" id="L167">                    return;</span>
+                }
+    
+<span class="nc" id="L170">                System.out.println(&quot;\nEntrez l'ID du projet pour modifier son statut:&quot;);</span>
+<span class="nc" id="L171">                String projectIdStr = scanner.nextLine();</span>
+    
+<span class="nc" id="L173">                System.out.println(&quot;Nouveau statut (prévu/en cours):&quot;);</span>
+<span class="nc" id="L174">                String newStatus = scanner.nextLine();</span>
+    
+<span class="nc" id="L176">                boolean updated = updateProjectStatusApiCall(projectIdStr, newStatus);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (updated) {</span>
+<span class="nc" id="L178">                    System.out.println(&quot;\nStatut mis à jour avec succès!\n&quot;);</span>
+    
+                    // Fetch project details to send notifications
+<span class="nc" id="L181">                    JSONObject updatedProject = fetchProjectById(projectIdStr);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                    if (updatedProject != null) {</span>
+<span class="nc" id="L183">                        String quartiersAffecte = updatedProject.getString(&quot;quartiersAffecte&quot;)</span>
+<span class="nc" id="L184">                                       .replace(&quot;\&quot;&quot;, &quot;&quot;) // Remove extra quotes</span>
+<span class="nc" id="L185">                                       .trim(); // Remove leading/trailing spaces</span>
+<span class="nc" id="L186">                        String titreProjet = updatedProject.getString(&quot;titreProjet&quot;);</span>
+<span class="nc" id="L187">                        String description = &quot;Le projet '&quot; + titreProjet + &quot;' a changé de statut: &quot; + newStatus;</span>
+    
+                        // Send notifications to residents
+<span class="nc" id="L190">                        sendNotificationsToResidents(quartiersAffecte, titreProjet, description);</span>
+                    }
+<span class="nc" id="L192">                } else {</span>
+<span class="nc" id="L193">                    System.out.println(&quot;\nErreur lors de la mise à jour du statut.\n&quot;);</span>
+                }
+<span class="nc" id="L195">            } else {</span>
+<span class="nc" id="L196">                System.out.println(&quot;\nErreur lors de la récupération des projets. Veuillez réessayer plus tard.\n&quot;);</span>
+            }
+<span class="nc" id="L198">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L199">            e.printStackTrace();</span>
+<span class="nc" id="L200">            System.out.println(&quot;\nErreur lors de la consultation des projets.\n&quot;);</span>
+<span class="nc" id="L201">        }</span>
+
+<span class="nc" id="L203">    }</span>
+
+    /**
+     * Envoie des notifications aux résidents concernés par un projet spécifique.
+     * @param quartiersAffecte liste des quartiers affectés
+     * @param titreProjet
+     * @param description
+     */
+    private void sendNotificationsToResidents(String quartiersAffecte, String titreProjet, String description) {
+<span class="nc" id="L212">        String url = &quot;http://localhost:7070/sendNotifications&quot;;</span>
+<span class="nc" id="L213">        HttpClient client = HttpClient.newHttpClient();</span>
+    
+<span class="nc" id="L215">        String body = String.format(&quot;quartiersAffecte=%s&amp;titreProjet=%s&amp;description=%s&quot;,</span>
+<span class="nc" id="L216">                encodeValue(quartiersAffecte), encodeValue(titreProjet), encodeValue(description));</span>
+    
+<span class="nc" id="L218">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L219">                .uri(URI.create(url))</span>
+<span class="nc" id="L220">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L221">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L222">                .build();</span>
+    
+        try {
+<span class="nc" id="L225">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L227">                System.out.println(&quot;\nNotifications envoyées avec succès!\n&quot;);</span>
+            } else {
+<span class="nc" id="L229">                System.out.println(&quot;\nErreur lors de l'envoi des notifications: &quot; + response.body() + &quot;\n&quot;);</span>
+            }
+<span class="nc" id="L231">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L232">            e.printStackTrace();</span>
+<span class="nc" id="L233">            System.out.println(&quot;\nErreur lors de la communication avec le serveur de notifications.\n&quot;);</span>
+<span class="nc" id="L234">        }</span>
+<span class="nc" id="L235">    }</span>
+
+    /**
+     * Valide les horaires d'un projet par rapport aux préférences des résidents affectés par le projet.
+     * @param quartiersAffecte
+     * @param horaire
+     * @param scanner
+     * @return l'horaire
+     */
+    private String validateAgainstResidentPreferences(String quartiersAffecte, String horaire, Scanner scanner) {
+<span class="nc" id="L245">        String url = &quot;http://localhost:7070/getResidents&quot;;</span>
+<span class="nc" id="L246">        HttpClient client = HttpClient.newHttpClient();</span>
+        try {
+<span class="nc" id="L248">            HttpResponse&lt;String&gt; response = client.send(HttpRequest.newBuilder().uri(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L250">                JSONArray residents = new JSONArray(response.body());</span>
+<span class="nc" id="L251">                StringBuilder newHoraire = new StringBuilder();</span>
+    
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                for (String entry : horaire.split(&quot;;&quot;)) {</span>
+<span class="nc" id="L254">                    String[] parts = entry.split(&quot;=&quot;);</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                    if (parts.length == 2) {</span>
+<span class="nc" id="L256">                        String day = parts[0];</span>
+<span class="nc" id="L257">                        String hours = parts[1];</span>
+<span class="nc" id="L258">                        boolean modified = false;</span>
+    
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                        if (!hours.equalsIgnoreCase(&quot;Aucun&quot;)) { // Only check overlap if hours are specified</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                            for (int i = 0; i &lt; residents.length(); i++) {</span>
+<span class="nc" id="L262">                                JSONObject resident = residents.getJSONObject(i);</span>
+<span class="nc" id="L263">                                String residentHoraire = resident.optString(&quot;horaire&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L264" title="All 4 branches missed.">                                if (!residentHoraire.isEmpty() &amp;&amp; quartiersAffecte.contains(resident.optString(&quot;arrondissement&quot;))) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                                    for (String residentEntry : residentHoraire.split(&quot;;&quot;)) {</span>
+<span class="nc" id="L266">                                        String[] residentParts = residentEntry.split(&quot;=&quot;);</span>
+<span class="nc bnc" id="L267" title="All 4 branches missed.">                                        if (residentParts.length == 2 &amp;&amp; residentParts[0].equals(day)) {</span>
+<span class="nc" id="L268">                                            String residentHours = residentParts[1];</span>
+<span class="nc bnc" id="L269" title="All 4 branches missed.">                                            if (!residentHours.equalsIgnoreCase(&quot;Aucun&quot;) &amp;&amp; !hoursOverlap(hours, residentHours)) {</span>
+<span class="nc" id="L270">                                                System.out.println(&quot;\nLe calendrier pour &quot; + day + &quot; (&quot; + hours + &quot;) est en dehors des préférences de &quot; + resident.getString(&quot;courriel&quot;) + &quot; (&quot; + residentHours + &quot;). Voulez-vous le modifier? (Oui/Non):&quot;);</span>
+<span class="nc" id="L271">                                                String decision = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">                                                if (decision.equalsIgnoreCase(&quot;Oui&quot;)) {</span>
+<span class="nc" id="L273">                                                    System.out.println(&quot;Entrez un nouvel horaire pour &quot; + day + &quot; (HH:MM-&gt;HH:MM ou Aucun):&quot;);</span>
+                                                    while (true) {
+<span class="nc" id="L275">                                                        String newInput = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L276" title="All 4 branches missed.">                                                        if (newInput.equalsIgnoreCase(&quot;Aucun&quot;) || isValidHourRange(newInput)) {</span>
+<span class="nc" id="L277">                                                            hours = newInput;</span>
+<span class="nc" id="L278">                                                            modified = true;</span>
+<span class="nc" id="L279">                                                            break;</span>
+                                                        } else {
+<span class="nc" id="L281">                                                            System.out.println(&quot;Format invalide. Entrez HH:MM-&gt;HH:MM ou Aucun:&quot;);</span>
+                                                        }
+<span class="nc" id="L283">                                                    }</span>
+                                                }
+                                                break; // Break inner loop after modification
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+    
+<span class="nc" id="L293">                        newHoraire.append(day).append(&quot;=&quot;).append(hours).append(&quot;;&quot;);</span>
+                    }
+                }
+    
+<span class="nc" id="L297">                return newHoraire.toString();</span>
+            }
+<span class="nc" id="L299">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L300">            e.printStackTrace();</span>
+<span class="nc" id="L301">            System.out.println(&quot;\nErreur lors de la vérification des préférences des résidents.\n&quot;);</span>
+<span class="nc" id="L302">        }</span>
+<span class="nc" id="L303">        return horaire;</span>
+    }
+
+    /**
+     * Valide une date
+     * @param date
+     * @return boolean
+     */
+    private boolean validateDate(String date) {
+        try {
+<span class="nc" id="L313">            LocalDate parsedDate = LocalDate.parse(date, DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;));</span>
+<span class="nc" id="L314">            return parsedDate.isAfter(LocalDate.now());</span>
+<span class="nc" id="L315">        } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L316">            return false;</span>
+        }
+    }
+
+    /**
+     * Vérifie si deux plages horaires se chevauchent.
+     * @param hours1
+     * @param hours2
+     * @return boolean
+     */
+    private boolean hoursOverlap(String hours1, String hours2) {
+<span class="nc bnc" id="L327" title="All 4 branches missed.">        if (hours1.equalsIgnoreCase(&quot;Aucun&quot;) || hours2.equalsIgnoreCase(&quot;Aucun&quot;)) {</span>
+            // If either schedule is &quot;Aucun&quot;, there is no overlap
+<span class="nc" id="L329">            return false;</span>
+        }
+    
+<span class="nc" id="L332">        String[] range1 = hours1.split(&quot;-&gt;&quot;);</span>
+<span class="nc" id="L333">        String[] range2 = hours2.split(&quot;-&gt;&quot;);</span>
+    
+<span class="nc" id="L335">        int start1 = Integer.parseInt(range1[0].replace(&quot;:&quot;, &quot;&quot;));</span>
+<span class="nc" id="L336">        int end1 = Integer.parseInt(range1[1].replace(&quot;:&quot;, &quot;&quot;));</span>
+<span class="nc" id="L337">        int start2 = Integer.parseInt(range2[0].replace(&quot;:&quot;, &quot;&quot;));</span>
+<span class="nc" id="L338">        int end2 = Integer.parseInt(range2[1].replace(&quot;:&quot;, &quot;&quot;));</span>
+    
+        // Check for overlap
+<span class="nc bnc" id="L341" title="All 4 branches missed.">        return !(end1 &lt;= start2 || end2 &lt;= start1);</span>
+    }
+
+    /**
+     * Soumet un projet à l'API avec les informations spécifiées.
+     * @return boolean
+     */
+    private boolean submitProjectToApi(String intervenant, String titreProjet, String description, String typeDeTravaux, String quartiersAffecte, String dateDebut, String dateFin, String horaire) {
+<span class="nc" id="L349">        String url = &quot;http://localhost:7070/soumettre-projet&quot;;</span>
+<span class="nc" id="L350">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L351">        String body = String.format(&quot;intervenant=%s&amp;titreProjet=%s&amp;description=%s&amp;typeDeTravaux=%s&amp;quartiersAffecte=%s&amp;dateDebut=%s&amp;dateFin=%s&amp;horaire=%s&quot;,</span>
+<span class="nc" id="L352">                encodeValue(intervenant), encodeValue(titreProjet), encodeValue(description), encodeValue(typeDeTravaux),</span>
+<span class="nc" id="L353">                encodeValue(quartiersAffecte), encodeValue(dateDebut), encodeValue(dateFin), encodeValue(horaire));</span>
+
+<span class="nc" id="L355">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L356">                .uri(URI.create(url))</span>
+<span class="nc" id="L357">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L358">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L359">                .build();</span>
+
+        try {
+<span class="nc" id="L362">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">            return response.statusCode() == 200;</span>
+<span class="nc" id="L364">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L365">            e.printStackTrace();</span>
+<span class="nc" id="L366">            return false;</span>
+        }
+    }
+
+    /**
+     * Récupère les détails d'un projet spécifique en fonction de son identifiant.
+     * @param projectId
+     */
+    private JSONObject fetchProjectById(String projectId) {
+<span class="nc" id="L375">        String url = &quot;http://localhost:7070/getProjets&quot;;</span>
+<span class="nc" id="L376">        HttpClient client = HttpClient.newHttpClient();</span>
+    
+        try {
+            // Send GET request to fetch all projects
+<span class="nc" id="L380">            HttpResponse&lt;String&gt; response = client.send(</span>
+<span class="nc" id="L381">                    HttpRequest.newBuilder()</span>
+<span class="nc" id="L382">                            .uri(URI.create(url))</span>
+<span class="nc" id="L383">                            .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L384">                            .GET()</span>
+<span class="nc" id="L385">                            .build(),</span>
+<span class="nc" id="L386">                    HttpResponse.BodyHandlers.ofString()</span>
+            );
+    
+            // Check if the response is successful
+<span class="nc bnc" id="L390" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+                // Parse the response body as a JSON array
+<span class="nc" id="L392">                JSONArray projets = new JSONArray(response.body());</span>
+    
+                // Iterate through the array to find the project with the matching ID
+<span class="nc bnc" id="L395" title="All 2 branches missed.">                for (int i = 0; i &lt; projets.length(); i++) {</span>
+<span class="nc" id="L396">                    JSONObject projet = projets.getJSONObject(i);</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">                    if (projet.getString(&quot;id&quot;).equals(projectId)) {</span>
+<span class="nc" id="L398">                        return projet; // Return the matching project</span>
+                    }
+                }
+<span class="nc" id="L401">            } else {</span>
+<span class="nc" id="L402">                System.out.println(&quot;Erreur lors de la récupération des projets: &quot; + response.statusCode());</span>
+            }
+<span class="nc" id="L404">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L405">            System.err.println(&quot;Erreur lors de la communication avec le serveur.&quot;);</span>
+<span class="nc" id="L406">            e.printStackTrace();</span>
+<span class="nc" id="L407">        }</span>
+    
+<span class="nc" id="L409">        return null; // Return null if the project is not found or an error occurs</span>
+    }
+
+    /**
+     * Met à jour le statut d'un projet via un appel à l'API.
+     * @param projectId
+     * @param newStatus
+     * @return boolean
+     */
+    private boolean updateProjectStatusApiCall(String projectId, String newStatus) {
+<span class="nc" id="L419">        String url = &quot;http://localhost:7070/updateProjetStatus&quot;;</span>
+<span class="nc" id="L420">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L421">        String body = String.format(&quot;projectId=%s&amp;statut=%s&quot;,</span>
+<span class="nc" id="L422">                encodeValue(projectId), encodeValue(newStatus));</span>
+    
+<span class="nc" id="L424">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L425">                .uri(URI.create(url))</span>
+<span class="nc" id="L426">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L427">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L428">                .build();</span>
+    
+        try {
+<span class="nc" id="L431">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">            return response.statusCode() == 200;</span>
+<span class="nc" id="L433">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L434">            e.printStackTrace();</span>
+<span class="nc" id="L435">            return false;</span>
+        }
+    }
+
+    /**
+     * Valide si input représente une plage horaire au format correct.
+     * @param input
+     * @return boolean
+     */
+    private boolean isValidHourRange(String input) {
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if (input.matches(&quot;\\d{2}:\\d{2}-&gt;\\d{2}:\\d{2}&quot;)) {</span>
+<span class="nc" id="L446">            String[] hours = input.split(&quot;-&gt;&quot;);</span>
+<span class="nc" id="L447">            String[] start = hours[0].split(&quot;:&quot;);</span>
+<span class="nc" id="L448">            String[] end = hours[1].split(&quot;:&quot;);</span>
+    
+<span class="nc" id="L450">            int startHour = Integer.parseInt(start[0]);</span>
+<span class="nc" id="L451">            int startMinute = Integer.parseInt(start[1]);</span>
+<span class="nc" id="L452">            int endHour = Integer.parseInt(end[0]);</span>
+<span class="nc" id="L453">            int endMinute = Integer.parseInt(end[1]);</span>
+    
+<span class="nc bnc" id="L455" title="All 8 branches missed.">            boolean isValidStart = startHour &gt;= 0 &amp;&amp; startHour &lt; 24 &amp;&amp; startMinute &gt;= 0 &amp;&amp; startMinute &lt; 60;</span>
+<span class="nc bnc" id="L456" title="All 8 branches missed.">            boolean isValidEnd = endHour &gt;= 0 &amp;&amp; endHour &lt; 24 &amp;&amp; endMinute &gt;= 0 &amp;&amp; endMinute &lt; 60;</span>
+    
+<span class="nc bnc" id="L458" title="All 10 branches missed.">            return isValidStart &amp;&amp; isValidEnd &amp;&amp; ((startHour &lt; endHour) || (startHour == endHour &amp;&amp; startMinute &lt; endMinute));</span>
+        }
+<span class="nc" id="L460">        return false;</span>
+    }
+    
+    private String encodeValue(String value) {
+<span class="nc" id="L464">        return URLEncoder.encode(value, StandardCharsets.UTF_8);</span>
+    }
+    /**
+     * Valide l'input du scanner
+     * @param scanner le scanner pour la saisie
+     * @return le choix validé
+     */
+    private int validateChoiceInput(int lowerBound, int upperBound, Scanner scanner) {
+        while (true) {
+            try {
+<span class="nc" id="L474">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L475" title="All 4 branches missed.">                if (choix &gt;= lowerBound &amp;&amp; choix &lt;= upperBound) {</span>
+<span class="nc" id="L476">                    return choix;</span>
+                }
+<span class="nc" id="L478">            } catch (NumberFormatException ignored) {</span>
+<span class="nc" id="L479">            }</span>
+<span class="nc" id="L480">            System.out.println(&quot;\nVeuillez entrer un numéro entre &quot; + lowerBound + &quot; et &quot; + upperBound + &quot;.\n&quot;);</span>
+        }
+    }    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

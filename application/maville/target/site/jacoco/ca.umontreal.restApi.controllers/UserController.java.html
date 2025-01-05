@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.restApi.controllers</a> &gt; <span class="el_source">UserController.java</span></div><h1>UserController.java</h1><pre class="source lang-java linenums">package ca.umontreal.restApi.controllers;
+
+import ca.umontreal.restApi.csvManager.CsvManager;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class UserController {
+    private final CsvManager csvManager;
+
+<span class="nc" id="L12">    public UserController(Javalin app) {</span>
+<span class="nc" id="L13">        this.csvManager = new CsvManager();</span>
+
+<span class="nc" id="L15">        app.post(&quot;/isCourrielTaken&quot;, this::handleIsCourrielTaken);</span>
+<span class="nc" id="L16">        app.post(&quot;/creer-compte&quot;, this::handleCreateAccount);</span>
+<span class="nc" id="L17">        app.get(&quot;/verifArrondissement&quot;, this::handleVerifyArrondissement);</span>
+<span class="nc" id="L18">        app.get(&quot;/getResidents&quot;, this::handleGetResidents);</span>
+<span class="nc" id="L19">        app.get(&quot;/getIntervenants&quot;, this::handleGetIntervenants);</span>
+<span class="nc" id="L20">        app.post(&quot;/updatePreferences&quot;, this::handleUpdatePreferences);</span>
+<span class="nc" id="L21">        app.get(&quot;/consulter-notifications&quot;, this::handleConsultNotifications);</span>
+<span class="nc" id="L22">        app.post(&quot;/marquer-notifications-vues&quot;, this::handleMarkNotificationsAsViewed);</span>
+<span class="nc" id="L23">    }</span>
+
+    /**
+     * Vérifie si une adresse courriel est déjà utilisée.
+     * @param ctx
+     */
+    private void handleIsCourrielTaken(Context ctx) {
+<span class="nc" id="L30">        String courriel = ctx.formParam(&quot;courriel&quot;);</span>
+        try {
+<span class="nc bnc" id="L32" title="All 2 branches missed.">            if (!csvManager.isCourrielTaken(courriel)) {</span>
+<span class="nc" id="L33">                ctx.status(200).result(&quot;\nCourriel valide\n&quot;);</span>
+            } else {
+<span class="nc" id="L35">                ctx.status(409).result(&quot;\nCourriel invalide\n&quot;);</span>
+            }
+<span class="nc" id="L37">        } catch (Exception e) {</span>
+<span class="nc" id="L38">            e.printStackTrace();</span>
+<span class="nc" id="L39">            ctx.status(500).result(&quot;\nErreur lors de la vérification du courriel\n&quot;);</span>
+<span class="nc" id="L40">        }</span>
+<span class="nc" id="L41">    }</span>
+
+    /**
+     * Gère la création d'un nouveau compte utilisateur.
+     * @param ctx
+     */
+    private void handleCreateAccount(Context ctx) {
+<span class="nc" id="L48">        String typeUsager = ctx.formParam(&quot;typeUsager&quot;);</span>
+<span class="nc" id="L49">        String nomComplet = ctx.formParam(&quot;nomComplet&quot;);</span>
+<span class="nc" id="L50">        String dateNaissance = ctx.formParam(&quot;dateNaissance&quot;);</span>
+<span class="nc" id="L51">        String courriel = ctx.formParam(&quot;courriel&quot;);</span>
+<span class="nc" id="L52">        String password = ctx.formParam(&quot;password&quot;);</span>
+<span class="nc" id="L53">        String telephone = ctx.formParam(&quot;telephone&quot;);</span>
+<span class="nc" id="L54">        String adresse = ctx.formParam(&quot;adresse&quot;);</span>
+<span class="nc" id="L55">        String arrondissement = ctx.formParam(&quot;arrondissement&quot;);</span>
+<span class="nc" id="L56">        String horaire = ctx.formParam(&quot;horaire&quot;);</span>
+<span class="nc" id="L57">        String typeInter = ctx.formParam(&quot;typeInter&quot;);</span>
+<span class="nc" id="L58">        String idVille = ctx.formParam(&quot;idVille&quot;);</span>
+
+        try {
+<span class="nc" id="L61">            csvManager.writeUserToCSV(typeUsager, nomComplet, dateNaissance, courriel, password, telephone, adresse,</span>
+                    arrondissement, horaire, typeInter, idVille);
+<span class="nc" id="L63">            ctx.status(201).result(&quot;\nCompte créé avec succès\n&quot;);</span>
+<span class="nc" id="L64">        } catch (Exception e) {</span>
+<span class="nc" id="L65">            e.printStackTrace();</span>
+<span class="nc" id="L66">            ctx.status(500).result(&quot;\nErreur lors de la création du compte\n&quot;);</span>
+<span class="nc" id="L67">        }</span>
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Gère la vérification des arrondissements disponibles.
+     * @param ctx
+     */
+    private void handleVerifyArrondissement(Context ctx) {
+        try {
+<span class="nc" id="L76">            JSONArray jsonArray = csvManager.readArrondissementFromCSV();</span>
+<span class="nc" id="L77">            ctx.result(jsonArray.toString());</span>
+<span class="nc" id="L78">            ctx.status(200);</span>
+<span class="nc" id="L79">        } catch (Exception e) {</span>
+<span class="nc" id="L80">            e.printStackTrace();</span>
+<span class="nc" id="L81">            ctx.status(500).result(&quot;\nErreur lors de la lecture des arrondissements\n&quot;);</span>
+<span class="nc" id="L82">        }</span>
+<span class="nc" id="L83">    }</span>
+
+    /**
+     * Gère la récupération de la liste des résidents.
+     * @param ctx
+     */
+    private void handleGetResidents(Context ctx) {
+        try {
+<span class="nc" id="L91">            JSONArray jsonArray = csvManager.readResidentFromCSV();</span>
+<span class="nc" id="L92">            ctx.result(jsonArray.toString());</span>
+<span class="nc" id="L93">            ctx.status(200);</span>
+<span class="nc" id="L94">        } catch (Exception e) {</span>
+<span class="nc" id="L95">            e.printStackTrace();</span>
+<span class="nc" id="L96">            ctx.status(500).result(&quot;\nErreur lors de la lecture des résidents\n&quot;);</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">    }</span>
+
+    /**
+     * Gère la récupération de la liste des Intervenants.
+     * @param ctx
+     */
+    private void handleGetIntervenants(Context ctx) {
+        try {
+<span class="nc" id="L106">            JSONArray jsonArray = csvManager.readIntervenantFromCSV();</span>
+<span class="nc" id="L107">            ctx.result(jsonArray.toString());</span>
+<span class="nc" id="L108">            ctx.status(200);</span>
+<span class="nc" id="L109">        } catch (Exception e) {</span>
+<span class="nc" id="L110">            e.printStackTrace();</span>
+<span class="nc" id="L111">            ctx.status(500).result(&quot;\nErreur lors de la lecture des intervenants\n&quot;);</span>
+<span class="nc" id="L112">        }</span>
+<span class="nc" id="L113">    }</span>
+
+    /**
+     * Gère la mise à jour des préférences horaires d'un utilisateur.
+     * @param ctx
+     */
+    private void handleUpdatePreferences(Context ctx) {
+<span class="nc" id="L120">        String courriel = ctx.formParam(&quot;courriel&quot;);</span>
+<span class="nc" id="L121">        String preferences = ctx.formParam(&quot;preferences&quot;);</span>
+
+        try {
+<span class="nc" id="L124">            boolean updated = csvManager.updateUserPreferences(courriel, preferences);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (updated) {</span>
+<span class="nc" id="L126">                ctx.status(200).result(&quot;\nPréférences mises à jour avec succès\n&quot;);</span>
+            } else {
+<span class="nc" id="L128">                ctx.status(404).result(&quot;\nUtilisateur introuvable\n&quot;);</span>
+            }
+<span class="nc" id="L130">        } catch (Exception e) {</span>
+<span class="nc" id="L131">            e.printStackTrace();</span>
+<span class="nc" id="L132">            ctx.status(500).result(&quot;\nErreur lors de la mise à jour des préférences\n&quot;);</span>
+<span class="nc" id="L133">        }</span>
+<span class="nc" id="L134">    }</span>
+
+    /**
+     * Gère la consultation des notifications d'un résident spécifique.
+     * @param ctx
+     */
+    private void handleConsultNotifications(Context ctx) {
+<span class="nc" id="L141">        String resident = ctx.queryParam(&quot;resident&quot;);</span>
+
+<span class="nc bnc" id="L143" title="All 4 branches missed.">        if (resident == null || resident.isEmpty()) {</span>
+<span class="nc" id="L144">            ctx.status(400).result(&quot;\nParamètre 'resident' manquant ou vide\n&quot;);</span>
+<span class="nc" id="L145">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L149">            JSONArray notifications = csvManager.readNotificationsFromCsv();</span>
+<span class="nc" id="L150">            JSONArray filteredNotifications = new JSONArray();</span>
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            for (int i = 0; i &lt; notifications.length(); i++) {</span>
+<span class="nc" id="L153">                JSONObject notification = notifications.getJSONObject(i);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                if (resident.equalsIgnoreCase(notification.optString(&quot;resident&quot;))) {</span>
+<span class="nc" id="L155">                    filteredNotifications.put(notification);</span>
+                }
+            }
+
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (filteredNotifications.isEmpty()) {</span>
+<span class="nc" id="L160">                ctx.status(404).result(&quot;\nAucune notification trouvée pour ce résident\n&quot;);</span>
+            } else {
+<span class="nc" id="L162">                ctx.result(filteredNotifications.toString());</span>
+<span class="nc" id="L163">                ctx.status(200);</span>
+            }
+<span class="nc" id="L165">        } catch (Exception e) {</span>
+<span class="nc" id="L166">            e.printStackTrace();</span>
+<span class="nc" id="L167">            ctx.status(500).result(&quot;\nErreur lors de la consultation des notifications\n&quot;);</span>
+<span class="nc" id="L168">        }</span>
+<span class="nc" id="L169">    }</span>
+
+    /**
+     * Gère la mise à jour des notifications pour un résident spécifique en les marquant comme vues.
+     * @param ctx
+     */
+    private void handleMarkNotificationsAsViewed(Context ctx) {
+<span class="nc" id="L176">        String resident = ctx.formParam(&quot;resident&quot;);</span>
+
+<span class="nc bnc" id="L178" title="All 4 branches missed.">        if (resident == null || resident.isEmpty()) {</span>
+<span class="nc" id="L179">            ctx.status(400).result(&quot;\nParamètre 'resident' manquant ou vide\n&quot;);</span>
+<span class="nc" id="L180">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L184">            boolean updated = csvManager.markNotificationsAsViewed(resident);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            if (updated) {</span>
+<span class="nc" id="L186">                ctx.status(200).result(&quot;\nNotifications marquées comme vues\n&quot;);</span>
+            } else {
+<span class="nc" id="L188">                ctx.status(404).result(&quot;\nAucune notification trouvée pour ce résident\n&quot;);</span>
+            }
+<span class="nc" id="L190">        } catch (Exception e) {</span>
+<span class="nc" id="L191">            e.printStackTrace();</span>
+<span class="nc" id="L192">            ctx.status(500).result(&quot;\nErreur lors de la mise à jour des notifications\n&quot;);</span>
+<span class="nc" id="L193">        }</span>
+<span class="nc" id="L194">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

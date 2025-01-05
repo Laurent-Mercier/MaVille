@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuNotification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuNotification.java</span></div><h1>MenuNotification.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.User;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class MenuNotification extends Menu {
+
+    public MenuNotification() {
+<span class="nc" id="L19">        super(&quot;notification&quot;);</span>
+<span class="nc" id="L20">        String[] options = {&quot;Voir mes notifications (1)&quot;, &quot;Retour au menu principal (2)&quot;};</span>
+<span class="nc" id="L21">        this.setElements(new ArrayList&lt;&gt;(Arrays.asList(options)));</span>
+<span class="nc" id="L22">    }</span>
+
+    /**
+     * Affiche menu
+     */
+    @Override
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L29">        JSONArray notifications = fetchNotificationsFromApi(user);</span>
+<span class="nc" id="L30">        String resident = user.getCourriel();</span>
+
+<span class="nc" id="L32">        long newNotificationsCount = getNewNotificationsCount(resident, notifications);</span>
+
+<span class="nc" id="L34">        System.out.println(&quot;Nouvelles notifications: &quot; + newNotificationsCount);</span>
+<span class="nc" id="L35">        System.out.println(&quot;Entrez le numéro entre parenthèses pour choisir une option:\n&quot;);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        for (String option : this.getElements()) {</span>
+<span class="nc" id="L37">            System.out.println(option);</span>
+<span class="nc" id="L38">        }</span>
+<span class="nc" id="L39">        System.out.println();</span>
+<span class="nc" id="L40">    }</span>
+
+    /**
+     * Affiche le menu selon le choix de l'usager
+     * @param choix choix de l'usager
+     * @param user
+     * @param scanner
+     * @return un menu
+     */
+    @Override
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L51" title="All 3 branches missed.">        switch (choix) {</span>
+            case 1:
+<span class="nc" id="L53">                int menuChoice = viewNotifications(user, scanner);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                if (menuChoice==1) {</span>
+<span class="nc" id="L55">                    return this;</span>
+                } else {
+<span class="nc" id="L57">                    return new MenuPrincipal();</span>
+                }
+
+            case 2:
+<span class="nc" id="L61">                return new MenuPrincipal();</span>
+
+            default:
+<span class="nc" id="L64">                System.out.println(&quot;\nEntrez un nombre valide entre 1 et 2.\n&quot;);</span>
+        }
+<span class="nc" id="L66">        return this;</span>
+    }
+    /**
+     * Affiche les notifications de l'utilisateur
+     */
+    private int viewNotifications(User user, Scanner scanner) {
+<span class="nc" id="L72">        JSONArray notifications = fetchNotificationsFromApi(user);</span>
+<span class="nc" id="L73">        String resident = user.getCourriel();</span>
+    
+        // Filter notifications for the resident
+<span class="nc" id="L76">        JSONArray residentNotifications = new JSONArray();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (int i = 0; i &lt; notifications.length(); i++) {</span>
+<span class="nc" id="L78">            JSONObject notification = notifications.getJSONObject(i);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (resident.equals(notification.getString(&quot;resident&quot;))) {</span>
+<span class="nc" id="L80">                residentNotifications.put(notification);</span>
+            }
+        }
+    
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (residentNotifications.isEmpty()) {</span>
+<span class="nc" id="L85">            System.out.println(&quot;\nVous n'avez aucune notification pour le moment.\n&quot;);</span>
+        } else {
+            // Sort notifications by ID in descending order
+<span class="nc" id="L88">            residentNotifications = sortNotificationsById(residentNotifications);</span>
+    
+<span class="nc" id="L90">            System.out.println(&quot;\nVos notifications :&quot;);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            for (int i = 0; i &lt; residentNotifications.length(); i++) {</span>
+<span class="nc" id="L92">                JSONObject notification = residentNotifications.getJSONObject(i);</span>
+<span class="nc" id="L93">                System.out.println(&quot;\n=================================================&quot;);</span>
+<span class="nc" id="L94">                System.out.println(&quot;ID: &quot; + notification.getInt(&quot;id&quot;));</span>
+<span class="nc" id="L95">                System.out.println(&quot;Description: &quot; + notification.getString(&quot;description&quot;));</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                System.out.println(&quot;Vue: &quot; + (notification.getBoolean(&quot;vue&quot;) ? &quot;Oui&quot; : &quot;Non&quot;));</span>
+<span class="nc" id="L97">                System.out.println(&quot;=================================================&quot;);</span>
+            }
+    
+            // Mark all notifications as viewed
+<span class="nc" id="L101">            markNotificationsAsViewed(resident);</span>
+        }
+    
+<span class="nc" id="L104">        System.out.println(&quot;\nEntrez 1 pour revenir au menu précédent ou 2 pour revenir au menu principal:\n&quot;);</span>
+<span class="nc" id="L105">        int choix = validateChoiceInput(1, 2, scanner);</span>
+    
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        return choix == 1 ? 1 : 0;</span>
+    }
+
+    /**
+     * Récupère les notifications pour un utilisateur spécifique via un appel à l'API.
+     * @param user utilisateur
+     * @return le résultat de l'appel
+     */
+    private JSONArray fetchNotificationsFromApi(User user) {
+<span class="nc" id="L116">        String url = &quot;http://localhost:7070/consulter-notifications?resident=&quot; + encodeValue(user.getCourriel());</span>
+<span class="nc" id="L117">        HttpClient client = HttpClient.newHttpClient();</span>
+    
+<span class="nc" id="L119">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L120">                .uri(URI.create(url))</span>
+<span class="nc" id="L121">                .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L122">                .GET()</span>
+<span class="nc" id="L123">                .build();</span>
+    
+        try {
+<span class="nc" id="L126">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L128">                return new JSONArray(response.body());</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            } else if (response.statusCode() == 404) {</span>
+<span class="nc" id="L130">                System.out.println(&quot;\nAucune notification trouvée pour ce résident.&quot;);</span>
+            } else {
+<span class="nc" id="L132">                System.out.println(&quot;\nErreur lors de la récupération des notifications.&quot;);</span>
+            }
+<span class="nc" id="L134">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L135">            e.printStackTrace();</span>
+<span class="nc" id="L136">        }</span>
+    
+<span class="nc" id="L138">        return new JSONArray();</span>
+    }
+
+    /**
+     * Compte le nombre de nouvelles notifications non vues pour un résident
+     * @param resident resident
+     * @param notifications liste des notifications
+     */
+    private long getNewNotificationsCount(String resident, JSONArray notifications) {
+<span class="nc" id="L147">        return notifications.toList().stream()</span>
+<span class="nc" id="L148">                .map(obj -&gt; new JSONObject((java.util.Map&lt;?, ?&gt;) obj))</span>
+<span class="nc" id="L149">                .filter(notification -&gt;</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                        resident.equals(notification.getString(&quot;resident&quot;)) &amp;&amp;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                                !notification.getBoolean(&quot;vue&quot;)</span>
+                )
+<span class="nc" id="L153">                .count();</span>
+    }
+
+    /**
+     * Arrange les notifications par ID
+     * @param notifications liste de notificiations
+     * @return liste de notifications sorted
+     */
+    private JSONArray sortNotificationsById(JSONArray notifications) {
+<span class="nc" id="L162">        ArrayList&lt;JSONObject&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        for (int i = 0; i &lt; notifications.length(); i++) {</span>
+<span class="nc" id="L164">            list.add(notifications.getJSONObject(i));</span>
+        }
+<span class="nc" id="L166">        list.sort((n1, n2) -&gt; Integer.compare(n2.getInt(&quot;id&quot;), n1.getInt(&quot;id&quot;))); // Descending order by ID</span>
+
+<span class="nc" id="L168">        return new JSONArray(list);</span>
+    }
+
+    /**
+     * Marque toutes les notifications comme vues pour un résident
+     * @param resident
+     */
+    private void markNotificationsAsViewed(String resident) {
+<span class="nc" id="L176">        String url = &quot;http://localhost:7070/marquer-notifications-vues&quot;;</span>
+<span class="nc" id="L177">        HttpClient client = HttpClient.newHttpClient();</span>
+
+<span class="nc" id="L179">        String body = String.format(&quot;resident=%s&quot;, encodeValue(resident));</span>
+
+<span class="nc" id="L181">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L182">                .uri(URI.create(url))</span>
+<span class="nc" id="L183">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L184">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L185">                .build();</span>
+
+        try {
+<span class="nc" id="L188">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (response.statusCode() != 200) {</span>
+<span class="nc" id="L190">                System.out.println(&quot;\nErreur lors de la mise à jour des notifications comme vues.\n&quot;);</span>
+            }
+<span class="nc" id="L192">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L193">            e.printStackTrace();</span>
+<span class="nc" id="L194">            System.out.println(&quot;\nErreur de communication avec le serveur.\n&quot;);</span>
+<span class="nc" id="L195">        }</span>
+<span class="nc" id="L196">    }</span>
+
+    /**
+     * Valide l'input du scanner
+     * @param scanner le scanner pour la saisie
+     * @return le choix validé
+     */
+    private int validateChoiceInput(int lowerBound, int upperBound, Scanner scanner) {
+        while (true) {
+            try {
+<span class="nc" id="L206">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L207" title="All 4 branches missed.">                if (choix &gt;= lowerBound &amp;&amp; choix &lt;= upperBound) {</span>
+<span class="nc" id="L208">                    return choix;</span>
+                }
+<span class="nc" id="L210">            } catch (NumberFormatException ignored) {</span>
+<span class="nc" id="L211">            }</span>
+<span class="nc" id="L212">            System.out.println(&quot;\nVeuillez entrer un numéro entre &quot; + lowerBound + &quot; et &quot; + upperBound + &quot;.\n&quot;);</span>
+        }
+    }
+
+    private String encodeValue(String value) {
+<span class="nc" id="L217">        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

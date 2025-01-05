@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CsvManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.restApi.csvManager</a> &gt; <span class="el_source">CsvManager.java</span></div><h1>CsvManager.java</h1><pre class="source lang-java linenums">package ca.umontreal.restApi.csvManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.*;
+import java.util.Arrays;
+<span class="fc" id="L8">public class CsvManager {</span>
+
+<span class="fc" id="L10">    private static String PROJETS_FILE_PATH = &quot;src/main/resources/projets.csv&quot;;</span>
+<span class="fc" id="L11">    private static String RESIDENTS_FILE_PATH = &quot;src/main/resources/residents.csv&quot;;</span>
+<span class="fc" id="L12">    private static String INTERVENANTS_FILE_PATH = &quot;src/main/resources/intervenants.csv&quot;;</span>
+<span class="fc" id="L13">    private static String REQUETES_FILE_PATH = &quot;src/main/resources/requetes.csv&quot;;</span>
+<span class="fc" id="L14">    private static String CANDIDATURES_FILE_PATH = &quot;src/main/resources/candidatures.csv&quot;;</span>
+<span class="fc" id="L15">    private static  String NOTIFICATIONS_FILE_PATH = &quot;src/main/resources/notifications.csv&quot;;</span>
+
+    public void setProjetsFilePath(String filePath) {
+<span class="nc" id="L18">        PROJETS_FILE_PATH = filePath;</span>
+<span class="nc" id="L19">    }</span>
+
+    public void setResidentsFilePath(String filePath) {
+<span class="fc" id="L22">        RESIDENTS_FILE_PATH = filePath;</span>
+<span class="fc" id="L23">    }</span>
+
+    public void setIntervenantsFilePath(String filePath) {
+<span class="fc" id="L26">        INTERVENANTS_FILE_PATH = filePath;</span>
+<span class="fc" id="L27">    }</span>
+
+    public void setRequetesFilePath(String filePath) {
+<span class="fc" id="L30">        REQUETES_FILE_PATH = filePath;</span>
+<span class="fc" id="L31">    }</span>
+
+    public void setCandidaturesFilePath(String filePath) {
+<span class="fc" id="L34">        CANDIDATURES_FILE_PATH = filePath;</span>
+<span class="fc" id="L35">    }</span>
+
+    public void setNotificationsFilePath(String filePath) {
+<span class="fc" id="L38">        NOTIFICATIONS_FILE_PATH = filePath;</span>
+<span class="fc" id="L39">    }</span>
+
+    /**
+     * Écrit un nouvel utilisateur dans le fichier CSV approprié
+     *
+     * @param typeUsager le type de l'utilisateur (&quot;resident&quot; ou &quot;intervenant&quot;).
+     * @param nomComplet le nom complet de l'utilisateur.
+     * @param dateNaissance la date de naissance de l'utilisateur (uniquement pour les résidents).
+     * @param courriel l'adresse courriel de l'utilisateur.
+     * @param password le mot de passe de l'utilisateur.
+     * @param telephone le numéro de téléphone de l'utilisateur (uniquement pour les résidents).
+     * @param adresse l'adresse de l'utilisateur (uniquement pour les résidents).
+     * @param arrondissement l'arrondissement de l'utilisateur (uniquement pour les résidents).
+     * @param horaire les préférences horaires de l'utilisateur (uniquement pour les résidents).
+     * @param typeInter le type d'intervenant (uniquement pour les intervenants).
+     * @param idVille l'identifiant de la ville de l'intervenant (uniquement pour les intervenants).
+     */
+    public void writeUserToCSV(String typeUsager, String nomComplet, String dateNaissance,
+                               String courriel, String password, String telephone,
+                               String adresse, String arrondissement, String horaire, String typeInter, String idVille) {
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        String filePath = typeUsager.equals(&quot;resident&quot;) ? RESIDENTS_FILE_PATH : INTERVENANTS_FILE_PATH;</span>
+
+<span class="fc" id="L61">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            String csvLine = typeUsager.equals(&quot;resident&quot;)</span>
+<span class="fc" id="L63">                    ? formatCsvLine(nomComplet, courriel, password, dateNaissance, telephone, adresse, arrondissement, horaire)</span>
+<span class="fc" id="L64">                    : formatCsvLine(nomComplet, courriel, password, typeInter, idVille);</span>
+<span class="fc" id="L65">            writer.write(csvLine);</span>
+<span class="fc" id="L66">            writer.newLine();</span>
+<span class="nc" id="L67">        } catch (IOException e) {</span>
+<span class="nc" id="L68">            System.err.println(&quot;Erreur lors de l'écriture dans le fichier CSV.&quot;);</span>
+<span class="nc" id="L69">            e.printStackTrace();</span>
+<span class="fc" id="L70">        }</span>
+<span class="fc" id="L71">    }</span>
+
+    /**
+     * Écrit un nouveau projet dans le fichier CSV des projets.
+     * @param intervenant l'adresse courriel de l'intervenant responsable du projet.
+     * @param titreProjet le titre du projet.
+     * @param description une description détaillée du projet.
+     * @param typeDeTravaux le type de travaux associés au projet.
+     * @param quartiersAffecte les quartiers affectés par le projet, séparés par des virgules.
+     * @param dateDebut la date de début prévue du projet.
+     * @param dateFin la date de fin prévue du projet.
+     * @param horaire les horaires associés au projet.
+     * @param statut le statut initial du projet
+     */
+    public void writeProjetToCsv(String intervenant, String titreProjet, String description, String typeDeTravaux, 
+                             String quartiersAffecte, String dateDebut, String dateFin, String horaire, String statut) throws IOException {
+<span class="nc" id="L87">        int id = getNextProjectId(); // Generate a unique ID</span>
+<span class="nc" id="L88">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PROJETS_FILE_PATH, true))) {</span>
+<span class="nc" id="L89">            String csvLine = formatCsvLine(String.valueOf(id), titreProjet, description, typeDeTravaux, quartiersAffecte, </span>
+                                        dateDebut, dateFin, horaire, statut, intervenant);
+<span class="nc" id="L91">            writer.write(csvLine);</span>
+<span class="nc" id="L92">            writer.newLine();</span>
+<span class="nc" id="L93">        } catch (IOException e) {</span>
+<span class="nc" id="L94">            System.err.println(&quot;Erreur lors de l'écriture dans le fichier projets.csv.&quot;);</span>
+<span class="nc" id="L95">            throw e;</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">    }</span>
+    /**
+     * Lit toutes les requêtes depuis le fichier CSV des requêtes.
+     * @return un tableau JSON contenant toutes les requêtes présentes dans le fichier CSV.
+     */
+    public JSONArray readRequestFromCsv() {
+<span class="nc" id="L103">        return readCsvFile(REQUETES_FILE_PATH);</span>
+    }
+
+    /**
+     * Écrit une nouvelle requête dans le fichier CSV des requêtes.
+     * @param titreDuTravail le titre du travail demandé.
+     * @param description une description détaillée de la requête.
+     * @param typeDeTravaux le type de travaux associés à la requête.
+     * @param dateDebut la date de début prévue pour la réalisation de la requête.
+     * @param quartier le quartier où la requête s'applique.
+     * @param resident le nom du résident ayant soumis la requête.
+     * @param intervenant l'intervenant associé à la requête (peut être vide).
+     * @param requeteId l'identifiant unique de la requête.
+     */
+    public void writeRequestToCsv(String titreDuTravail, String description, String typeDeTravaux,
+                                  String dateDebut, String quartier, String resident, String intervenant, int requeteId) throws IOException {
+<span class="fc" id="L119">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(REQUETES_FILE_PATH, true))) {</span>
+<span class="fc" id="L120">            String csvLine = formatCsvLine(</span>
+<span class="fc" id="L121">                    String.valueOf(requeteId), titreDuTravail, description, typeDeTravaux,</span>
+                    dateDebut, quartier, resident, intervenant
+            );
+<span class="fc" id="L124">            writer.write(csvLine);</span>
+<span class="fc" id="L125">            writer.newLine();</span>
+<span class="nc" id="L126">        } catch (IOException e) {</span>
+<span class="nc" id="L127">            System.err.println(&quot;Erreur lors de l'écriture dans le fichier requetes.csv.&quot;);</span>
+<span class="nc" id="L128">            throw e;</span>
+<span class="fc" id="L129">        }</span>
+<span class="fc" id="L130">    }</span>
+    /**
+     * Lit toutes les candidatures depuis le fichier CSV des requêtes.
+     * @return un tableau JSON contenant toutes les candidatures présentes dans le fichier CSV.
+     */
+    public JSONArray readCandidaturesFromCsv() {
+<span class="nc" id="L136">        return readCsvFile(CANDIDATURES_FILE_PATH);</span>
+    }
+
+    /**
+     * Écrit ou met à jour une candidature dans le fichier CSV des candidatures.
+     * @param requeteId l'identifiant de la requête associée à la candidature.
+     * @param intervenant l'adresse courriel de l'intervenant soumettant la candidature.
+     * @param accepted indique si la candidature est acceptée.
+     * @throws IOException
+     */
+    public void writeCandidatureToCsv(String requeteId, String intervenant, boolean accepted) throws IOException {
+<span class="fc" id="L147">        File tempFile = new File(&quot;src/main/resources/candidatures_temp.csv&quot;);</span>
+<span class="fc" id="L148">        boolean updated = false;</span>
+    
+<span class="fc" id="L150">        try (BufferedReader reader = new BufferedReader(new FileReader(CANDIDATURES_FILE_PATH));</span>
+<span class="fc" id="L151">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+    
+<span class="fc" id="L153">            String header = reader.readLine();</span>
+<span class="fc" id="L154">            writer.write(header);</span>
+<span class="fc" id="L155">            writer.newLine();</span>
+    
+            String line;
+<span class="fc bfc" id="L158" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L159">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="pc bpc" id="L160" title="2 of 6 branches missed.">                if (fields.length &gt;= 3 &amp;&amp; fields[0].equals(requeteId) &amp;&amp; fields[1].equals(intervenant)) {</span>
+<span class="fc" id="L161">                    fields[2] = String.valueOf(accepted); // Update the &quot;accepted&quot; field</span>
+<span class="fc" id="L162">                    updated = true;</span>
+                }
+<span class="fc" id="L164">                writer.write(formatCsvLine(fields));</span>
+<span class="fc" id="L165">                writer.newLine();</span>
+<span class="fc" id="L166">            }</span>
+
+            // If the candidature wasn't found, append it
+<span class="fc bfc" id="L169" title="All 2 branches covered.">            if (!updated) {</span>
+<span class="fc" id="L170">                writer.write(formatCsvLine(requeteId, intervenant, String.valueOf(accepted)));</span>
+<span class="fc" id="L171">                writer.newLine();</span>
+            }
+<span class="nc" id="L173">        } catch (IOException e) {</span>
+<span class="nc" id="L174">            System.err.println(&quot;Erreur lors de l'écriture dans le fichier candidatures.csv.&quot;);</span>
+<span class="nc" id="L175">            throw e;</span>
+<span class="fc" id="L176">        }</span>
+    
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (!tempFile.renameTo(new File(CANDIDATURES_FILE_PATH))) {</span>
+<span class="nc" id="L179">            throw new IOException(&quot;Erreur lors du remplacement du fichier candidatures.csv.&quot;);</span>
+        }
+<span class="fc" id="L181">    }</span>
+
+    /**
+     * Supprime une candidature spécifique du fichier CSV des candidatures.
+     * @param requeteId l'identifiant de la requête associée à la candidature.
+     * @param intervenant l'adresse courriel de l'intervenant dont la candidature doit être supprimée.
+     * @return boolean
+     */
+    public boolean removeCandidatureFromCsv(String requeteId, String intervenant) {
+<span class="fc" id="L190">        File tempFile = new File(&quot;src/main/resources/candidatures_temp.csv&quot;);</span>
+<span class="fc" id="L191">        boolean found = false;</span>
+
+<span class="fc" id="L193">        try (BufferedReader reader = new BufferedReader(new FileReader(CANDIDATURES_FILE_PATH));</span>
+<span class="fc" id="L194">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+
+<span class="fc" id="L196">            String header = reader.readLine();</span>
+<span class="fc" id="L197">            writer.write(header);</span>
+<span class="fc" id="L198">            writer.newLine();</span>
+
+            String line;
+<span class="fc bfc" id="L201" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L202">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="pc bpc" id="L203" title="2 of 6 branches missed.">                if (fields.length &gt;= 2 &amp;&amp; fields[0].equals(requeteId) &amp;&amp; fields[1].equals(intervenant)) {</span>
+<span class="fc" id="L204">                    found = true;</span>
+<span class="fc" id="L205">                    continue; // Skip writing this line to the temp file</span>
+                }
+<span class="fc" id="L207">                writer.write(formatCsvLine(fields));</span>
+<span class="fc" id="L208">                writer.newLine();</span>
+<span class="fc" id="L209">            }</span>
+<span class="nc" id="L210">        } catch (IOException e) {</span>
+<span class="nc" id="L211">            System.err.println(&quot;Erreur lors de la suppression de la candidature dans candidatures.csv.&quot;);</span>
+<span class="nc" id="L212">            e.printStackTrace();</span>
+<span class="nc" id="L213">            return false;</span>
+<span class="fc" id="L214">        }</span>
+
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">        if (found) {</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">            if (!tempFile.renameTo(new File(CANDIDATURES_FILE_PATH))) {</span>
+<span class="nc" id="L218">                System.err.println(&quot;Erreur lors du remplacement du fichier candidatures.csv.&quot;);</span>
+<span class="nc" id="L219">                return false;</span>
+            }
+        } else {
+<span class="nc" id="L222">            tempFile.delete();</span>
+        }
+
+<span class="fc" id="L225">        return found;</span>
+    }
+    /**
+     * Lit toutes les notifications depuis le fichier CSV des notifications.
+     * @return un tableau JSON contenant toutes les notifications présentes dans le fichier CSV.
+     */
+    public JSONArray readNotificationsFromCsv() {
+<span class="fc" id="L232">        return readCsvFile(NOTIFICATIONS_FILE_PATH);</span>
+    }
+
+    /**
+     * Marque toutes les notifications d'un résident spécifique comme vues dans le fichier CSV des notifications.
+     * @param resident l'adresse courriel du résident dont les notifications doivent être mises à jour.
+     * @return
+     */
+    public boolean markNotificationsAsViewed(String resident) {
+<span class="fc" id="L241">        File tempFile = new File(&quot;src/main/resources/notifications_temp.csv&quot;);</span>
+<span class="fc" id="L242">        boolean updated = false;</span>
+
+<span class="fc" id="L244">        try (BufferedReader reader = new BufferedReader(new FileReader(NOTIFICATIONS_FILE_PATH));</span>
+<span class="fc" id="L245">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+
+<span class="fc" id="L247">            String header = reader.readLine();</span>
+<span class="fc" id="L248">            writer.write(header);</span>
+<span class="fc" id="L249">            writer.newLine();</span>
+
+            String line;
+<span class="fc bfc" id="L252" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L253">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="pc bpc" id="L254" title="2 of 6 branches missed.">                if (fields.length &gt;= 3 &amp;&amp; fields[1].equalsIgnoreCase(resident) &amp;&amp; fields[2].equalsIgnoreCase(&quot;false&quot;)) {</span>
+<span class="fc" id="L255">                    fields[2] = &quot;true&quot;; // Mark as viewed</span>
+<span class="fc" id="L256">                    updated = true;</span>
+                }
+<span class="fc" id="L258">                writer.write(formatCsvLine(fields));</span>
+<span class="fc" id="L259">                writer.newLine();</span>
+<span class="fc" id="L260">            }</span>
+<span class="fc" id="L261">            updated=true;</span>
+<span class="nc" id="L262">        } catch (IOException e) {</span>
+<span class="nc" id="L263">            System.err.println(&quot;Erreur lors de la mise à jour des notifications.&quot;);</span>
+<span class="nc" id="L264">            e.printStackTrace();</span>
+<span class="nc" id="L265">            return false;</span>
+<span class="fc" id="L266">        }</span>
+
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">        if (updated) {</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">            if (!tempFile.renameTo(new File(NOTIFICATIONS_FILE_PATH))) {</span>
+<span class="nc" id="L270">                System.err.println(&quot;Erreur lors du remplacement du fichier notifications.csv.&quot;);</span>
+<span class="nc" id="L271">                return false;</span>
+            }
+        } else {
+<span class="nc" id="L274">            tempFile.delete();</span>
+        }
+
+<span class="fc" id="L277">        return updated;</span>
+    }
+    /**
+     * Écrit une nouvelle notification dans le fichier CSV des notifications.
+     * @param id l'identifiant unique de la notification.
+     * @param resident l'adresse courriel du résident pour lequel la notification est destinée.
+     * @param description la description du contenu de la notification.
+     */
+    public void writeNotificationToCsv(int id, String resident, String description) {
+<span class="nc" id="L286">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(NOTIFICATIONS_FILE_PATH, true))) {</span>
+<span class="nc" id="L287">            String csvLine = formatCsvLine(String.valueOf(id), resident, &quot;false&quot;, description); // Ensure 'false' is written for vue</span>
+<span class="nc" id="L288">            writer.write(csvLine);</span>
+<span class="nc" id="L289">            writer.newLine();</span>
+<span class="nc" id="L290">        } catch (IOException e) {</span>
+<span class="nc" id="L291">            System.err.println(&quot;Erreur lors de l'écriture dans le fichier notifications.csv.&quot;);</span>
+<span class="nc" id="L292">            e.printStackTrace();</span>
+<span class="nc" id="L293">        }</span>
+<span class="nc" id="L294">    }</span>
+    /**
+     * Génère le prochain identifiant unique pour une nouvelle notification.
+     * @return le prochain identifiant de notification à utiliser. Retourne 1 si le fichier est vide
+     *         ou en cas d'erreur.
+     */
+    public int getNextNotificationId() {
+<span class="fc" id="L301">        String notificationsFilePath = NOTIFICATIONS_FILE_PATH;</span>
+<span class="fc" id="L302">        try (BufferedReader reader = new BufferedReader(new FileReader(notificationsFilePath))) {</span>
+<span class="fc" id="L303">            String lastLine = null, line;</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L305">                lastLine = line;</span>
+            }
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">            if (lastLine != null) {</span>
+<span class="fc" id="L308">                String[] fields = lastLine.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="fc" id="L309">                return Integer.parseInt(fields[0]) + 1; // Increment the last ID</span>
+            }
+<span class="pc" id="L311">        } catch (IOException | NumberFormatException e) {</span>
+<span class="nc" id="L312">            e.printStackTrace();</span>
+<span class="nc" id="L313">        }</span>
+<span class="nc" id="L314">        return 1; // Default to ID 1 if the file is empty</span>
+    }
+
+    /**
+     * Génère le prochain identifiant unique pour un nouveau projet.
+     * @return le prochain identifiant de projet à utiliser. Retourne 1 si le fichier est vide
+     *         ou en cas d'erreur.
+     */
+    private int getNextProjectId() {
+<span class="nc" id="L323">        try (BufferedReader reader = new BufferedReader(new FileReader(PROJETS_FILE_PATH))) {</span>
+<span class="nc" id="L324">            String lastLine = null, line;</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L326">                lastLine = line;</span>
+            }
+<span class="nc bnc" id="L328" title="All 2 branches missed.">            if (lastLine != null) {</span>
+<span class="nc" id="L329">                String[] fields = lastLine.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="nc" id="L330">                return Integer.parseInt(fields[0]) + 1; // Increment the last ID</span>
+            }
+<span class="nc" id="L332">        } catch (IOException | NumberFormatException e) {</span>
+<span class="nc" id="L333">            e.printStackTrace();</span>
+<span class="nc" id="L334">        }</span>
+<span class="nc" id="L335">        return 1; // Default to ID 1 if the file is empty</span>
+    }
+    /**
+     * Met à jour le statut d'un projet spécifique dans le fichier CSV des projets.
+     *
+     * @param projectId l'identifiant unique du projet à mettre à jour.
+     * @param newStatus le nouveau statut du projet (par exemple, &quot;en cours&quot;, &quot;terminé&quot;).
+     * @return vrai si succes
+     */
+    public boolean updateProjetStatus(int projectId, String newStatus) {
+<span class="nc" id="L345">        File tempFile = new File(&quot;src/main/resources/projets_temp.csv&quot;);</span>
+<span class="nc" id="L346">        boolean updated = false;</span>
+    
+<span class="nc" id="L348">        try (BufferedReader reader = new BufferedReader(new FileReader(PROJETS_FILE_PATH));</span>
+<span class="nc" id="L349">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+    
+<span class="nc" id="L351">            String header = reader.readLine();</span>
+<span class="nc" id="L352">            writer.write(header);</span>
+<span class="nc" id="L353">            writer.newLine();</span>
+    
+            String line;
+<span class="nc bnc" id="L356" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L357">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="nc bnc" id="L358" title="All 4 branches missed.">                if (fields.length &gt; 0 &amp;&amp; Integer.parseInt(fields[0]) == projectId) {</span>
+<span class="nc" id="L359">                    fields[fields.length - 2] = escapeCsv(newStatus); // Update the &quot;statut&quot; field</span>
+<span class="nc" id="L360">                    updated = true;</span>
+                }
+<span class="nc" id="L362">                writer.write(formatCsvLine(fields));</span>
+<span class="nc" id="L363">                writer.newLine();</span>
+<span class="nc" id="L364">            }</span>
+<span class="nc" id="L365">        } catch (IOException e) {</span>
+<span class="nc" id="L366">            System.err.println(&quot;Erreur lors de la mise à jour du statut dans projets.csv.&quot;);</span>
+<span class="nc" id="L367">            e.printStackTrace();</span>
+<span class="nc" id="L368">            return false;</span>
+<span class="nc" id="L369">        }</span>
+    
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        if (updated) {</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            if (!tempFile.renameTo(new File(PROJETS_FILE_PATH))) {</span>
+<span class="nc" id="L373">                System.err.println(&quot;Erreur lors du remplacement du fichier projets.csv.&quot;);</span>
+<span class="nc" id="L374">                return false;</span>
+            }
+        } else {
+<span class="nc" id="L377">            tempFile.delete();</span>
+        }
+    
+<span class="nc" id="L380">        return updated;</span>
+    }
+
+    /**
+     * Met à jour les préférences horaires d'un utilisateur résident dans le fichier CSV.
+     * @param courriel l'adresse courriel de l'utilisateur dont les préférences doivent être mises à jour.
+     * @param preferences les nouvelles préférences horaires au format &quot;Jour=HH:MM-&gt;HH:MM;&quot;.
+     * @return vrai si succes
+     */
+    public boolean updateUserPreferences(String courriel, String preferences) {
+<span class="fc" id="L390">        File tempFile = new File(&quot;src/main/resources/residents_temp.csv&quot;);</span>
+<span class="fc" id="L391">        boolean updated = false;</span>
+
+<span class="fc" id="L393">        try (BufferedReader reader = new BufferedReader(new FileReader(RESIDENTS_FILE_PATH));</span>
+<span class="fc" id="L394">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+
+<span class="fc" id="L396">            String header = reader.readLine();</span>
+<span class="fc" id="L397">            writer.write(header);</span>
+<span class="fc" id="L398">            writer.newLine();</span>
+
+<span class="fc" id="L400">            String[] headers = header.split(&quot;,&quot;);</span>
+<span class="fc" id="L401">            int horaireIndex = -1;</span>
+
+            // Find the index for the &quot;horaire&quot; field
+<span class="fc bfc" id="L404" title="All 2 branches covered.">            for (int i = 0; i &lt; headers.length; i++) {</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">                if (&quot;horaire&quot;.equalsIgnoreCase(headers[i].trim())) {</span>
+<span class="fc" id="L406">                    horaireIndex = i;</span>
+<span class="fc" id="L407">                    break;</span>
+                }
+            }
+
+<span class="fc bfc" id="L411" title="All 2 branches covered.">            if (horaireIndex == -1) {</span>
+<span class="fc" id="L412">                throw new IllegalStateException(&quot;Header 'horaire' not found in CSV file.&quot;);</span>
+            }
+
+            String line;
+<span class="fc bfc" id="L416" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L417">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+
+                // If this is the user, update their horaire
+<span class="pc bpc" id="L420" title="1 of 4 branches missed.">                if (fields.length &gt; 1 &amp;&amp; fields[1].trim().equalsIgnoreCase(courriel.trim())) {</span>
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">                    if (fields.length &lt;= horaireIndex) {</span>
+<span class="fc" id="L422">                        fields = Arrays.copyOf(fields, horaireIndex + 1);</span>
+<span class="fc" id="L423">                        fields[horaireIndex] = &quot;&quot;; // Initialize missing fields with an empty string</span>
+                    }
+<span class="fc" id="L425">                    fields[horaireIndex] = escapeCsv(preferences);</span>
+<span class="fc" id="L426">                    updated = true;</span>
+                }
+
+<span class="fc" id="L429">                writer.write(formatCsvLine(fields));</span>
+<span class="fc" id="L430">                writer.newLine();</span>
+<span class="fc" id="L431">            }</span>
+<span class="nc" id="L432">        } catch (IOException e) {</span>
+<span class="nc" id="L433">            System.err.println(&quot;Erreur lors de la mise à jour des préférences.&quot;);</span>
+<span class="nc" id="L434">            e.printStackTrace();</span>
+<span class="nc" id="L435">            return false;</span>
+<span class="fc" id="L436">        }</span>
+
+<span class="fc bfc" id="L438" title="All 2 branches covered.">        if (updated) {</span>
+<span class="pc bpc" id="L439" title="1 of 2 branches missed.">            if (!tempFile.renameTo(new File(RESIDENTS_FILE_PATH))) {</span>
+<span class="nc" id="L440">                System.err.println(&quot;Erreur lors du remplacement du fichier residents.csv.&quot;);</span>
+<span class="nc" id="L441">                return false;</span>
+            }
+        } else {
+<span class="fc" id="L444">            tempFile.delete();</span>
+        }
+
+<span class="fc" id="L447">        return updated;</span>
+    }
+
+    /**
+     * Vérifie si une adresse courriel est déjà utilisée dans les fichiers CSV des résidents ou des intervenants.
+     * @param courriel l'adresse courriel à vérifier.
+     * @return vrai is existe
+     */
+    public boolean isCourrielTaken(String courriel) {
+<span class="nc" id="L456">        String[] paths = {RESIDENTS_FILE_PATH, INTERVENANTS_FILE_PATH};</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        for (String path : paths) {</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">            if (isCourrielPresentInCsv(courriel, path)) {</span>
+<span class="nc" id="L459">                return false;</span>
+            }
+        }
+<span class="nc" id="L462">        return true;</span>
+    }
+    /**
+     * Vérifie si une adresse courriel est présente dans un fichier CSV spécifique.
+     *
+     * @param courriel l'adresse courriel à rechercher.
+     * @param filePath le chemin du fichier CSV dans lequel effectuer la recherche.
+     * @return vrai si existe
+     */
+    private boolean isCourrielPresentInCsv(String courriel, String filePath) {
+<span class="nc" id="L472">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+<span class="nc" id="L473">            reader.readLine(); // Read and skip the header</span>
+            String line;
+<span class="nc bnc" id="L475" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L476">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="nc bnc" id="L477" title="All 4 branches missed.">                if (fields.length &gt; 1 &amp;&amp; fields[1].trim().equalsIgnoreCase(courriel.trim())) {</span>
+<span class="nc" id="L478">                    return true;</span>
+                }
+<span class="nc" id="L480">            }</span>
+<span class="nc" id="L481">        } catch (IOException e) {</span>
+<span class="nc" id="L482">            System.err.println(&quot;Erreur lors de la lecture du fichier CSV: &quot; + filePath);</span>
+<span class="nc" id="L483">            e.printStackTrace();</span>
+<span class="nc" id="L484">        }</span>
+<span class="nc" id="L485">        return false;</span>
+    }
+    /**
+     * Lit tous les projets depuis le fichier CSV des projets.
+     *
+     * @return un tableau JSON contenant toutes les données des projets présentes dans le fichier CSV.
+     */
+    public JSONArray readProjetsFromCsv() {
+<span class="nc" id="L493">        return readCsvFile(PROJETS_FILE_PATH);</span>
+    }
+
+    /**
+     * Lit tous les résidents depuis le fichier CSV des résidents.
+     *
+     * @return un tableau JSON contenant toutes les données des résidents présentes dans le fichier CSV.
+     */
+    public JSONArray readResidentFromCSV() {
+<span class="nc" id="L502">        return readCsvFile(RESIDENTS_FILE_PATH);</span>
+    }
+    /**
+     * Lit tous les intervenants depuis le fichier CSV des intervenants.
+     *
+     * @return un tableau JSON contenant toutes les données des intervenants présentes dans le fichier CSV.
+     */
+    public JSONArray readIntervenantFromCSV() {
+<span class="nc" id="L510">        return readCsvFile(INTERVENANTS_FILE_PATH);</span>
+    }
+    /**
+     * Lit tous les arrondissements depuis le fichier CSV des codes postaux.
+     *
+     * @return un tableau JSON contenant toutes les données des arrondissements présentes dans le fichier CSV.
+     */
+    public JSONArray readArrondissementFromCSV() {
+<span class="nc" id="L518">        return readCsvFile(&quot;src/main/resources/codesPostaux.csv&quot;);</span>
+    }
+    /**
+     * Lit un fichier CSV et convertit chaque ligne en un objet JSON
+     * @param filePath le chemin du fichier CSV à lire.
+     * @return un tableau contenant les données
+     */
+    private JSONArray readCsvFile(String filePath) {
+<span class="fc" id="L526">        JSONArray jsonArray = new JSONArray();</span>
+<span class="fc" id="L527">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+<span class="fc" id="L528">            String[] headers = reader.readLine().split(&quot;,&quot;);</span>
+            String line;
+<span class="fc bfc" id="L530" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L531">                String[] fields = line.split(&quot;,(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;);</span>
+<span class="fc" id="L532">                JSONObject jsonObject = new JSONObject();</span>
+<span class="fc bfc" id="L533" title="All 2 branches covered.">                for (int i = 0; i &lt; headers.length; i++) {</span>
+<span class="pc bpc" id="L534" title="1 of 2 branches missed.">                    jsonObject.put(headers[i], i &lt; fields.length ? fields[i].replaceAll(&quot;^\&quot;|\&quot;$&quot;, &quot;&quot;) : &quot;&quot;);</span>
+                }
+<span class="fc" id="L536">                jsonArray.put(jsonObject);</span>
+<span class="fc" id="L537">            }</span>
+<span class="nc" id="L538">        } catch (IOException e) {</span>
+<span class="nc" id="L539">            System.err.println(&quot;Erreur lors de la lecture du fichier CSV.&quot;);</span>
+<span class="nc" id="L540">            e.printStackTrace();</span>
+<span class="fc" id="L541">        }</span>
+<span class="fc" id="L542">        return jsonArray;</span>
+    }
+    /**
+     * Formate les champs fournis en une seule ligne CSV.
+     *
+     * @param fields les champs à inclure dans la ligne CSV.
+     * @return une ligne CSV formatée.
+     */
+    private String formatCsvLine(String... fields) {
+<span class="fc" id="L551">        StringBuilder csvLine = new StringBuilder();</span>
+<span class="fc bfc" id="L552" title="All 2 branches covered.">        for (int i = 0; i &lt; fields.length; i++) {</span>
+<span class="fc" id="L553">            csvLine.append(escapeCsv(fields[i]));</span>
+<span class="fc bfc" id="L554" title="All 2 branches covered.">            if (i &lt; fields.length - 1) {</span>
+<span class="fc" id="L555">                csvLine.append(&quot;,&quot;);</span>
+            }
+        }
+<span class="fc" id="L558">        return csvLine.toString();</span>
+    }
+    /**
+     * Échappe un champ pour qu'il respecte les règles du format CSV.
+     * @param field le champ à échapper.
+     * @return le champ correctement échappé pour le format CSV.
+     */
+    private String escapeCsv(String field) {
+<span class="pc bpc" id="L566" title="2 of 4 branches missed.">        if (field.contains(&quot;,&quot;) || field.contains(&quot;\&quot;&quot;)) {</span>
+<span class="nc" id="L567">            field = field.replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;); // Escape double quotes</span>
+<span class="nc" id="L568">            return &quot;\&quot;&quot; + field + &quot;\&quot;&quot;; // Surround with double quotes</span>
+        }
+<span class="fc" id="L570">        return field;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

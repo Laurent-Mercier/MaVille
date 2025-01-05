@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuPreferencesTravaux.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuPreferencesTravaux.java</span></div><h1>MenuPreferencesTravaux.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class MenuPreferencesTravaux extends Menu {
+
+    public MenuPreferencesTravaux() {
+<span class="nc" id="L18">        super(&quot;preferencesTravaux&quot;);</span>
+<span class="nc" id="L19">        String[] options = {&quot;Fournir vos préférences (1)&quot;, &quot;Consulter les préférences (2)&quot;, &quot;Retour (3)&quot;};</span>
+<span class="nc" id="L20">        this.setElements(new ArrayList&lt;&gt;(Arrays.asList(options)));</span>
+<span class="nc" id="L21">    }</span>
+
+    /**
+     * Affiche menu
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L27">        System.out.println(&quot;\nFournissez vos préférences ou consultez celles des autres usagers de votre quartier! &quot; +</span>
+                &quot;Entrez le numéro entre parenthèses pour choisir une option:\n&quot;);
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        for (String option : this.getElements()) {</span>
+<span class="nc" id="L30">            System.out.println(option);</span>
+<span class="nc" id="L31">        }</span>
+<span class="nc" id="L32">        System.out.println();</span>
+<span class="nc" id="L33">    }</span>
+
+    /**
+     * Met à jour le menu en fonction du choix de l'utilisateur.
+     * @param choix
+     * @param user
+     * @param scanner
+     * @return
+     */
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L43" title="All 4 branches missed.">        switch (choix) {</span>
+            case 1:
+<span class="nc" id="L45">                handleProvidePreferences(scanner, user);</span>
+<span class="nc" id="L46">                break;</span>
+            case 2:
+<span class="nc" id="L48">                handleConsultPreferences(user);</span>
+<span class="nc" id="L49">                break;</span>
+            case 3:
+<span class="nc" id="L51">                return new MenuPrincipal();</span>
+            default:
+<span class="nc" id="L53">                System.out.println(&quot;\nEntrez un nombre de 1 à 3 pour choisir une option:\n&quot;);</span>
+<span class="nc" id="L54">                return this;</span>
+        }
+
+<span class="nc" id="L57">        System.out.println(&quot;\nEntrez 1 pour revenir en arrière ou 2 pour revenir au menu principal:\n&quot;);</span>
+<span class="nc" id="L58">        int choix2 = validateChoiceInput(1, 2, scanner);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        return choix2 == 1 ? this : new MenuPrincipal();</span>
+    }
+
+    /**
+     * Permet à l'utilisateur de fournir ses préférences horaires pour chaque jour de la semaine.
+     * @param scanner
+     * @param user
+     */
+    private void handleProvidePreferences(Scanner scanner, User user) {
+<span class="nc" id="L68">        System.out.println(&quot;\nFournissez vos préférences horaires pour chaque jour de la semaine (format: HH:MM-&gt;HH:MM ou Aucun):\n&quot;);</span>
+<span class="nc" id="L69">        StringBuilder preferences = new StringBuilder();</span>
+
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        for (String day : new String[]{&quot;Lundi&quot;, &quot;Mardi&quot;, &quot;Mercredi&quot;, &quot;Jeudi&quot;, &quot;Vendredi&quot;, &quot;Samedi&quot;, &quot;Dimanche&quot;}) {</span>
+<span class="nc" id="L72">            System.out.println(day + &quot;:&quot;);</span>
+            while (true) {
+<span class="nc" id="L74">                String input = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L75" title="All 4 branches missed.">                if (input.equalsIgnoreCase(&quot;Aucun&quot;) || isValidHourRange(input)) {</span>
+<span class="nc" id="L76">                    preferences.append(day).append(&quot;=&quot;).append(input).append(&quot;;&quot;);</span>
+<span class="nc" id="L77">                    break;</span>
+                } else {
+<span class="nc" id="L79">                    System.out.println(&quot;Format invalide. Entrez HH:MM-&gt;HH:MM ou Aucun:\n&quot;);</span>
+                }
+<span class="nc" id="L81">            }</span>
+        }
+
+<span class="nc" id="L84">        boolean success = updatePreferencesApiCall(user.getCourriel(), preferences.toString());</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L86">            System.out.println(&quot;\nPréférences horaires mises à jour avec succès!\n&quot;);</span>
+<span class="nc" id="L87">            user.setHoraire(preferences.toString());</span>
+        } else {
+<span class="nc" id="L89">            System.out.println(&quot;\nErreur lors de la mise à jour des préférences. Veuillez réessayer plus tard.\n&quot;);</span>
+        }
+<span class="nc" id="L91">    }</span>
+
+    /**
+     * Affiche les préférences horaires actuelles de l'utilisateur.
+     * @param user
+     */
+    private void handleConsultPreferences(User user) {
+<span class="nc" id="L98">        System.out.println(&quot;\nVos préférences horaires actuelles:\n&quot;);</span>
+
+<span class="nc" id="L100">        String preferences = user.getHoraire();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (preferences.isEmpty()) {</span>
+<span class="nc" id="L102">            System.out.println(&quot;Aucune préférence horaire enregistrée.\n&quot;);</span>
+        } else {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            for (String entry : preferences.split(&quot;;&quot;)) {</span>
+<span class="nc" id="L105">                String[] parts = entry.split(&quot;=&quot;);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                if (parts.length == 2) {</span>
+<span class="nc" id="L107">                    System.out.println(parts[0] + &quot;: &quot; + parts[1]);</span>
+                }
+            }
+        }
+<span class="nc" id="L111">    }</span>
+
+    /**
+     * Envoie une requête à l'API pour mettre à jour les préférences horaires de l'utilisateur.
+     * @param courriel
+     * @param preferences
+     * @return boolean
+     */
+    private boolean updatePreferencesApiCall(String courriel, String preferences) {
+<span class="nc" id="L120">        String url = &quot;http://localhost:7070/updatePreferences&quot;;</span>
+<span class="nc" id="L121">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L122">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L123">                .uri(URI.create(url))</span>
+<span class="nc" id="L124">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L125">                .POST(HttpRequest.BodyPublishers.ofString(&quot;courriel=&quot;</span>
+<span class="nc" id="L126">                        + URLEncoder.encode(courriel, StandardCharsets.UTF_8)</span>
+<span class="nc" id="L127">                        + &quot;&amp;preferences=&quot; + URLEncoder.encode(preferences,StandardCharsets.UTF_8)))</span>
+<span class="nc" id="L128">                .build();</span>
+
+        try {
+<span class="nc" id="L131">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            return response.statusCode() == 200;</span>
+<span class="nc" id="L133">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L134">            e.printStackTrace();</span>
+<span class="nc" id="L135">            return false;</span>
+        }
+    }
+    /**
+     * Valide l'input du scanner
+     * @param scanner le scanner pour la saisie
+     * @return le choix validé
+     */
+    private int validateChoiceInput(int lowerBound, int upperBound, Scanner scanner) {
+        while (true) {
+            try {
+<span class="nc" id="L146">                int choix = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L147" title="All 4 branches missed.">                if (choix &gt;= lowerBound &amp;&amp; choix &lt;= upperBound) {</span>
+<span class="nc" id="L148">                    return choix;</span>
+                }
+<span class="nc" id="L150">            } catch (NumberFormatException ignored) {</span>
+<span class="nc" id="L151">            }</span>
+<span class="nc" id="L152">            System.out.println(&quot;\nVeuillez entrer un numéro entre &quot; + lowerBound + &quot; et &quot; + upperBound + &quot;.\n&quot;);</span>
+        }
+    }
+
+    /**
+     * Vérifie si input représente une plage horaire valid
+     * @param input
+     * @return boolean
+     */
+    private boolean isValidHourRange(String input) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (input.matches(&quot;\\d{2}:\\d{2}-&gt;\\d{2}:\\d{2}&quot;)) {</span>
+<span class="nc" id="L163">            String[] hours = input.split(&quot;-&gt;&quot;);</span>
+<span class="nc" id="L164">            String[] start = hours[0].split(&quot;:&quot;);</span>
+<span class="nc" id="L165">            String[] end = hours[1].split(&quot;:&quot;);</span>
+
+<span class="nc" id="L167">            int startHour = Integer.parseInt(start[0]);</span>
+<span class="nc" id="L168">            int startMinute = Integer.parseInt(start[1]);</span>
+<span class="nc" id="L169">            int endHour = Integer.parseInt(end[0]);</span>
+<span class="nc" id="L170">            int endMinute = Integer.parseInt(end[1]);</span>
+
+<span class="nc bnc" id="L172" title="All 8 branches missed.">            boolean isValidStart = startHour &gt;= 0 &amp;&amp; startHour &lt; 24 &amp;&amp; startMinute &gt;= 0 &amp;&amp; startMinute &lt; 60;</span>
+<span class="nc bnc" id="L173" title="All 8 branches missed.">            boolean isValidEnd = endHour &gt;= 0 &amp;&amp; endHour &lt; 24 &amp;&amp; endMinute &gt;= 0 &amp;&amp; endMinute &lt; 60;</span>
+
+<span class="nc bnc" id="L175" title="All 10 branches missed.">            return isValidStart &amp;&amp; isValidEnd &amp;&amp; ((startHour &lt; endHour) || (startHour == endHour &amp;&amp; startMinute &lt; endMinute));</span>
+        }
+<span class="nc" id="L177">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

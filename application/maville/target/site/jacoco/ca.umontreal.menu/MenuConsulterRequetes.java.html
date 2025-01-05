@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuConsulterRequetes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maville</a> &gt; <a href="index.source.html" class="el_package">ca.umontreal.menu</a> &gt; <span class="el_source">MenuConsulterRequetes.java</span></div><h1>MenuConsulterRequetes.java</h1><pre class="source lang-java linenums">package ca.umontreal.menu;
+
+import ca.umontreal.user.User;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.URLEncoder.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class MenuConsulterRequetes extends Menu {
+
+    public MenuConsulterRequetes() {
+<span class="nc" id="L22">        super(&quot;consulterRequetes&quot;);</span>
+<span class="nc" id="L23">        String[] options = {</span>
+                &quot;Afficher les candidatures (1)&quot;,
+                &quot;Lister mes candidatures (2)&quot;,
+                &quot;Retour au menu principal (3)&quot;
+        };
+<span class="nc" id="L28">        this.setElements(new ArrayList&lt;&gt;(Arrays.asList(options)));</span>
+<span class="nc" id="L29">    }</span>
+
+    /**
+     * Affiche le menu
+     */
+    public void showMenu(Scanner scanner, User user) {
+<span class="nc" id="L35">        System.out.println(&quot;\nConsultez les requêtes ou gérez les candidatures. Entrez le numéro entre parenthèses pour choisir une option:\n&quot;);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        for (String option : this.getElements()) {</span>
+<span class="nc" id="L37">            System.out.println(option);</span>
+<span class="nc" id="L38">        }</span>
+<span class="nc" id="L39">        System.out.println();</span>
+<span class="nc" id="L40">    }</span>
+    /**
+     * Met à jour le menu en fonction du choix de l'utilisateur.
+     */
+    public Menu updateMenu(int choix, User user, Scanner scanner) {
+<span class="nc bnc" id="L45" title="All 4 branches missed.">        switch (choix) {</span>
+            case 1:
+<span class="nc" id="L47">                handleConsultRequetes(scanner, user);</span>
+<span class="nc" id="L48">                break;</span>
+
+            case 2:
+<span class="nc bnc" id="L51" title="All 2 branches missed.">                if (user.getUserType().equalsIgnoreCase(&quot;intervenant&quot;)) {</span>
+<span class="nc" id="L52">                    listMyCandidatures(user);</span>
+                } else {
+<span class="nc" id="L54">                    System.out.println(&quot;\nOption non disponible pour les résidents.\n&quot;);</span>
+                }
+<span class="nc" id="L56">                break;</span>
+
+            case 3:
+<span class="nc" id="L59">                return new MenuPrincipal();</span>
+
+            default:
+<span class="nc" id="L62">                System.out.println(&quot;\nEntrez un nombre valide entre 1 et 3.\n&quot;);</span>
+        }
+<span class="nc" id="L64">        return this;</span>
+    }
+    /**
+     * Gère la consultation des requêtes disponibles et permet à l'utilisateur de filtrer
+     * par quartier ou de sélectionner une requête pour poser une candidature.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @param user l'utilisateur actuel effectuant la consultation.
+     */
+    private void handleConsultRequetes(Scanner scanner, User user) {
+<span class="nc" id="L73">        String url = &quot;http://localhost:7070/consulter-requetes&quot;;</span>
+        try {
+<span class="nc" id="L75">            HttpResponse&lt;String&gt; response = fetchApiData(url);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L77">                JSONArray requests = new JSONArray(response.body());</span>
+<span class="nc" id="L78">                displayRequests(requests);</span>
+
+<span class="nc" id="L80">                System.out.println(&quot;\nVoulez-vous filtrer par quartier ? (Oui/Non):\n&quot;);</span>
+<span class="nc" id="L81">                String filterDecision = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (filterDecision.equalsIgnoreCase(&quot;Oui&quot;)) {</span>
+<span class="nc" id="L83">                    System.out.println(&quot;\nEntrez le nom du quartier pour filtrer les requêtes:\n&quot;);</span>
+<span class="nc" id="L84">                    String quartier = scanner.nextLine();</span>
+<span class="nc" id="L85">                    filterByQuartier(requests, quartier, scanner, user);</span>
+<span class="nc" id="L86">                } else {</span>
+<span class="nc" id="L87">                    handleRequestSelection(requests, scanner, user);</span>
+                }
+<span class="nc" id="L89">            } else {</span>
+<span class="nc" id="L90">                System.out.println(&quot;\nErreur lors de la récupération des requêtes.\n&quot;);</span>
+            }
+<span class="nc" id="L92">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L93">            e.printStackTrace();</span>
+<span class="nc" id="L94">            System.out.println(&quot;\nErreur de communication avec le serveur.\n&quot;);</span>
+<span class="nc" id="L95">        }</span>
+<span class="nc" id="L96">    }</span>
+    /**
+     * Gère la sélection d'une requête par l'utilisateur et la soumission d'une candidature.
+     * @param requests les requêtes disponibles parmi lesquelles l'utilisateur peut choisir.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @param user l'utilisateur actuel qui soumet la candidature.
+     */
+    private void handleRequestSelection(JSONArray requests, Scanner scanner, User user) {
+<span class="nc" id="L104">        System.out.println(&quot;\nEntrez l'ID de la requête pour poser votre candidature:\n&quot;);</span>
+<span class="nc" id="L105">        String requeteId = scanner.nextLine();</span>
+
+<span class="nc" id="L107">        JSONObject selectedRequest = null;</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (int i = 0; i &lt; requests.length(); i++) {</span>
+<span class="nc" id="L109">            JSONObject request = requests.getJSONObject(i);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (request.optString(&quot;requeteId&quot;).equals(requeteId)) {</span>
+<span class="nc" id="L111">                selectedRequest = request;</span>
+<span class="nc" id="L112">                break;</span>
+            }
+        }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (selectedRequest == null) {</span>
+<span class="nc" id="L116">            System.out.println(&quot;\nID de requête invalide. Retour au menu principal.\n&quot;);</span>
+<span class="nc" id="L117">            return;</span>
+        }
+<span class="nc" id="L119">        System.out.println(&quot;\nVoulez-vous poser une candidature pour cette requête ? (Oui/Non):\n&quot;);</span>
+<span class="nc" id="L120">        String decision = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (decision.equalsIgnoreCase(&quot;Oui&quot;)) {</span>
+<span class="nc" id="L123">            boolean success = manageCandidatureApi(requeteId, user.getCourriel(), &quot;http://localhost:7070/poser-candidature&quot;);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (success) {</span>
+<span class="nc" id="L125">                System.out.println(&quot;\nCandidature posée avec succès!\n&quot;);</span>
+            } else {
+<span class="nc" id="L127">                System.out.println(&quot;\nÉchec de la soumission de la candidature.\n&quot;);</span>
+            }
+<span class="nc" id="L129">        } else {</span>
+<span class="nc" id="L130">            System.out.println(&quot;\nRetour au menu principal.\n&quot;);</span>
+        }
+<span class="nc" id="L132">    }</span>
+
+    /**
+     * Applique un filtre sur les requêtes en fonction d'un quartier donné.
+     * @param requests les requêtes à filtrer.
+     * @param quartier le quartier utilisé comme critère de filtrage.
+     * @param scanner le scanner pour la saisie utilisateur.
+     * @param user l'utilisateur actuel qui effectue l'action.
+     */
+    private void filterByQuartier(JSONArray requests, String quartier, Scanner scanner, User user) {
+<span class="nc" id="L142">        JSONArray filteredRequests = new JSONArray();</span>
+        
+        // Filter requests by the specified quartier
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        for (int i = 0; i &lt; requests.length(); i++) {</span>
+<span class="nc" id="L146">            JSONObject request = requests.getJSONObject(i);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (request.optString(&quot;quartier&quot;).equalsIgnoreCase(quartier)) {</span>
+<span class="nc" id="L148">                filteredRequests.put(request);</span>
+            }
+        }
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (filteredRequests.isEmpty()) {</span>
+<span class="nc" id="L152">            System.out.println(&quot;\nAucune requête trouvée pour le quartier spécifié.\n&quot;);</span>
+<span class="nc" id="L153">            return;</span>
+        }
+        // Display the filtered requests
+<span class="nc" id="L156">        displayRequests(filteredRequests);</span>
+        // Handle request selection
+<span class="nc" id="L158">        handleRequestSelection(filteredRequests, scanner, user);</span>
+<span class="nc" id="L159">    }</span>
+
+
+    /**
+     * Affiche les candidatures soumises par l'utilisateur.
+     * @param user l'utilisateur actuel dont les candidatures sont récupérées et affichées.
+     */
+    private void listMyCandidatures( User user) {
+<span class="nc" id="L167">        String url = &quot;http://localhost:7070/lister-candidatures&quot;;</span>
+        try {
+<span class="nc" id="L169">            HttpResponse&lt;String&gt; response = fetchApiData(url + &quot;?intervenant=&quot; +</span>
+<span class="nc" id="L170">                    URLEncoder.encode(user.getCourriel(),StandardCharsets.UTF_8));</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (response.statusCode() == 200) {</span>
+<span class="nc" id="L172">                JSONArray candidatures = new JSONArray(response.body());</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                if (candidatures.isEmpty()) {</span>
+<span class="nc" id="L174">                    System.out.println(&quot;\nVous n'avez soumis aucune candidature.\n&quot;);</span>
+<span class="nc" id="L175">                    return;</span>
+                }
+<span class="nc" id="L177">                System.out.println(&quot;\nVoici vos candidatures soumises :\n&quot;);</span>
+<span class="nc" id="L178">                displayCandidatures(candidatures);</span>
+<span class="nc" id="L179">            } else {</span>
+<span class="nc" id="L180">                System.out.println(&quot;\nErreur lors de la récupération de vos candidatures.\n&quot;);</span>
+            }
+<span class="nc" id="L182">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L183">            e.printStackTrace();</span>
+<span class="nc" id="L184">            System.out.println(&quot;\nErreur de communication avec le serveur.\n&quot;);</span>
+<span class="nc" id="L185">        }</span>
+<span class="nc" id="L186">    }</span>
+
+    /**
+     * Fonction qui permet d'afficher les requêtes.
+     * @param requests Array de requetes
+     */
+    private void displayRequests(JSONArray requests) {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        for (int i = 0; i &lt; requests.length(); i++) {</span>
+<span class="nc" id="L194">            JSONObject request = requests.getJSONObject(i);</span>
+<span class="nc" id="L195">            System.out.println(&quot;\n=================================================&quot;);</span>
+<span class="nc" id="L196">            System.out.println(&quot;ID: &quot; + request.getString(&quot;requeteId&quot;));</span>
+<span class="nc" id="L197">            System.out.println(&quot;Titre: &quot; + request.getString(&quot;titreDuTravail&quot;));</span>
+<span class="nc" id="L198">            System.out.println(&quot;Description: &quot; + request.getString(&quot;description&quot;));</span>
+<span class="nc" id="L199">            System.out.println(&quot;Type de travaux: &quot; + request.getString(&quot;typeDeTravaux&quot;));</span>
+<span class="nc" id="L200">            System.out.println(&quot;Date de début: &quot; + request.getString(&quot;dateDebut&quot;));</span>
+<span class="nc" id="L201">            System.out.println(&quot;Quartier: &quot; + request.getString(&quot;quartier&quot;));</span>
+<span class="nc" id="L202">            System.out.println(&quot;=================================================&quot;);</span>
+        }
+<span class="nc" id="L204">    }</span>
+
+    /**
+     * Affiche les candidatures
+     * @param candidatures Array de candidatures
+     */
+    private void displayCandidatures(JSONArray candidatures) {
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        for (int i = 0; i &lt; candidatures.length(); i++) {</span>
+<span class="nc" id="L212">            JSONObject candidature = candidatures.getJSONObject(i);</span>
+<span class="nc" id="L213">            System.out.println(&quot;\n=================================================&quot;);</span>
+<span class="nc" id="L214">            System.out.println(&quot;Requête ID: &quot; + candidature.getString(&quot;requeteId&quot;));</span>
+<span class="nc" id="L215">            System.out.println(&quot;Intervenant: &quot; + candidature.getString(&quot;intervenant&quot;));</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            System.out.println(&quot;Accepté: &quot; + (candidature.getBoolean(&quot;accepted&quot;)? &quot;Oui&quot;:&quot;Non&quot;));</span>
+<span class="nc" id="L217">            System.out.println(&quot;=================================================&quot;);</span>
+        }
+<span class="nc" id="L219">    }</span>
+
+    /**
+     *  Helper Function qui permet de faire une HTTP request de type Accept
+     * @param url Url auquel on veut faire la requete
+     * @return le résultat de la requête
+     */
+    private HttpResponse&lt;String&gt; fetchApiData(String url) throws IOException, InterruptedException {
+<span class="nc" id="L227">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L228">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L229">                .uri(URI.create(url))</span>
+<span class="nc" id="L230">                .header(&quot;Accept&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L231">                .GET()</span>
+<span class="nc" id="L232">                .build();</span>
+<span class="nc" id="L233">        return client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+    }
+
+    /**
+     * Fonction qui permet de faire une HTTP request afin de gérer les candidatures
+     * @param requeteId id de la requête
+     * @param intervenant courriel de l'intervenant
+     * @param url url de la requête
+     * @return vrai ou faux
+     */
+    private boolean manageCandidatureApi(String requeteId, String intervenant, String url) {
+<span class="nc" id="L244">        HttpClient client = HttpClient.newHttpClient();</span>
+<span class="nc" id="L245">        String body = String.format(&quot;requeteId=%s&amp;intervenant=%s&quot;,</span>
+<span class="nc" id="L246">                URLEncoder.encode(requeteId, StandardCharsets.UTF_8),</span>
+<span class="nc" id="L247">                URLEncoder.encode(intervenant, StandardCharsets.UTF_8));</span>
+
+<span class="nc" id="L249">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L250">                .uri(URI.create(url))</span>
+<span class="nc" id="L251">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L252">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L253">                .build();</span>
+
+        try {
+<span class="nc" id="L256">            HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            return response.statusCode() == 200;</span>
+<span class="nc" id="L258">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L259">            e.printStackTrace();</span>
+<span class="nc" id="L260">            return false;</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
