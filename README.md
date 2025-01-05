@@ -22,7 +22,7 @@ MaVille est une application visant à transformer la gestion et la communication
 	• Modifier le statut d’un projet (intervenant)
  
 ## Fonctionnement de l'application
-- Pour lancer l'application, il suffit d'entrer la commande ```java -jar MaVille.jar``` dans un terminal travaillant dans le répertoire ```application```.
+- Pour lancer l'application, il suffit d'entrer la commande ```java -jar MaVille.jar``` dans un terminal travaillant dans le répertoire ```application/maville```.
 - Pour lancer l'application avec Docker il faut: ```docker build -t maville .``` et ensuite ```docker run -it -p 3000:3000 maville``` dans un terminal.
 - Il est possible de créer un compte et s'y connecter ensuite.
 - Pour se connecter comme intervenant, il suffit d'entrer ```regis.labeaume@quebec.qc.ca``` quand le courriel est demandé. Vous pouvez entrer ```QuebecL0VE``` pour le mot de passe.
